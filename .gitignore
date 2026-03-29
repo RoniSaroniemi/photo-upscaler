@@ -1,0 +1,53 @@
+# Build artifacts
+build/
+
+# Temporary files (transcripts, scratch)
+tmp/
+*.o
+*.air
+
+# Local state
+state/
+*.profraw
+.DS_Store
+__pycache__/
+*.pyc
+
+# Evidence (generated, can be large)
+evidence/
+
+# Temporary media
+tmp-media/
+
+# Secrets live in ~/.config/agent-telegram/ and ~/.config/agent-slack/ — never commit
+# .agent-comms/ has .example files (committed) and real configs (gitignored)
+# Copy .example to create your local config: cp slack.json.example slack.json
+.agent-comms/slack.json
+.agent-comms/routing.json
+.agent-comms/telegram.json
+config/session-manifest.json
+
+# Local settings
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Supervisor instructions (generated per-worktree by launch.py from base + brief)
+docs/supervisor-instructions.md
+
+# Worktrees (managed by git, not committed)
+.claude/worktrees/
+
+# Panel runtime artifacts (generated per-run)
+.panel/
+
+# Workflow runtime artifacts
+.workflows/*/artifacts/
+.workflows/*/audit.log
+.workflows/*/last-run.json
+.planning/

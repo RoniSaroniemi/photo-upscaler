@@ -1,0 +1,77 @@
+{
+  "id": "REPLACE_WITH_WORKFLOW_ID",
+  "name": "REPLACE_WITH_WORKFLOW_NAME",
+  "description": "REPLACE_WITH_DESCRIPTION",
+  "version": "1.0",
+  "enabled": false,
+
+  "schedule": {
+    "cron": "0 9 * * 1-5",
+    "timezone": "Europe/Helsinki",
+    "description": "Weekdays at 9am Helsinki time"
+  },
+
+  "steps": [
+    {
+      "id": "collect",
+      "type": "script",
+      "command": "python3 steps/collect_data.py",
+      "timeout_seconds": 300,
+      "requires": [],
+      "produces": ["raw-data.json"]
+    },
+    {
+      "id": "analyze",
+      "type": "script",
+      "command": "python3 steps/analyze.py",
+      "timeout_seconds": 120,
+      "requires": ["raw-data.json"],
+      "produces": ["analysis.json"]
+    },
+    {
+      "id": "decide",
+      "type": "agent",
+      "prompt_file": "prompts/decision-prompt.md",
+      "terminal_skills": ["no-action", "alert"],
+      "timeout_seconds": 180,
+      "max_attempts": 3,
+      "fallback": "escalate",
+      "requires": ["analysis.json"],
+      "produces": ["last-action.json"]
+    },
+    {
+      "id": "report",
+      "type": "script",
+      "command": "python3 steps/send_report.py",
+      "timeout_seconds": 60,
+      "requires": ["last-action.json"],
+      "produces": []
+    }
+  ],
+
+  "notifications": {
+    "on_success": {
+      "slack": true,
+      "telegram": false,
+      "message_template": "Workflow '{name}' completed: {summary}"
+    },
+    "on_failure": {
+      "slack": true,
+      "telegram": true,
+      "escalate_to_cpo": true,
+      "message_template": "Workflow '{name}' FAILED at step '{failed_step}': {error}"
+    }
+  },
+
+  "artifacts": {
+    "retention_days": 30,
+    "retention_max_runs": 100
+  },
+
+  "metadata": {
+    "created": "REPLACE_WITH_ISO_DATE",
+    "created_by": "REPLACE_WITH_CREATOR",
+    "last_modified": "REPLACE_WITH_ISO_DATE",
+    "tags": []
+  }
+}

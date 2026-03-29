@@ -1,0 +1,56 @@
+{
+  "id": "security-audit",
+  "name": "Security Audit",
+  "description": "Weekly automated security audit — scans for secrets, injection vectors, permission issues, dependency violations, and file permissions",
+  "version": "1.0",
+  "enabled": true,
+
+  "schedule": {
+    "cron": "0 3 * * 1",
+    "timezone": "UTC",
+    "description": "Weekly on Monday at 03:00 UTC"
+  },
+
+  "trigger": "agent",
+  "agent_config": {
+    "role": "pair",
+    "provider": "claude",
+    "model": "sonnet",
+    "ttl_minutes": 60,
+    "soft_ttl_minutes": 30,
+    "hard_ttl_minutes": 60,
+    "brief": ".workflows/security-audit/playbook.md",
+    "branch_prefix": "audit/security"
+  },
+
+  "output": {
+    "report_dir": ".reports/security/",
+    "report_format": "YYYY-MM-DD.md"
+  },
+
+  "notifications": {
+    "on_success": {
+      "slack": false,
+      "telegram": false,
+      "message_template": "Security audit completed: {summary}"
+    },
+    "on_failure": {
+      "slack": true,
+      "telegram": true,
+      "escalate_to_cpo": true,
+      "message_template": "Security audit FAILED at step '{failed_step}': {error}"
+    }
+  },
+
+  "artifacts": {
+    "retention_days": 365,
+    "retention_max_runs": 52
+  },
+
+  "metadata": {
+    "created": "2026-03-28T00:00:00Z",
+    "created_by": "BL-026",
+    "last_modified": "2026-03-28T00:00:00Z",
+    "tags": ["security", "audit", "horizontal", "weekly"]
+  }
+}

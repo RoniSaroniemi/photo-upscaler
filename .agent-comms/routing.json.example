@@ -1,0 +1,38 @@
+{
+  "tmux_server": "",
+  "default_timeout_minutes": 30,
+  "routes": [
+    {
+      "sender_match": {
+        "type": "telegram",
+        "username": "REPLACE_CEO_USERNAME"
+      },
+      "profile": "cpo",
+      "mode": "persistent",
+      "tmux_session": "cpo",
+      "output_channel": {
+        "type": "telegram",
+        "role": "CPO"
+      }
+    },
+    {
+      "sender_match": {
+        "type": "slack",
+        "user_id": "REPLACE_SLACK_USER_ID"
+      },
+      "profile": "workflow-inquiry",
+      "mode": "temporary",
+      "timeout_minutes": 15,
+      "context_files": [],
+      "system_prompt_ref": null,
+      "output_channel": {
+        "type": "slack",
+        "channel": "REPLACE_CHANNEL"
+      }
+    }
+  ],
+  "fallback": {
+    "action": "ignore",
+    "log": true
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "_comment": "Session manifest — declares what should be running for this project.",
+  "_docs": {
+    "project": "Human-readable project name (used in status output and alerts)",
+    "tmux_server": "The -L server name for tmux isolation (from WS1). Set to null to use the default tmux server.",
+    "watchdog_pid_file": "Path where the watchdog writes its own PID for single-instance guarantee",
+    "poll_interval_seconds": "How often (in seconds) the watchdog checks all sessions. Default: 30",
+    "persistent": "Array of sessions/processes that must always be running",
+    "persistent[].name": "tmux session name (for agent type) or logical name (for process type)",
+    "persistent[].type": "'agent' (runs in tmux, needs Claude launched) or 'process' (background process with PID file)",
+    "persistent[].restart_command": "Command to run on restart (used by WS3b restart logic)",
+    "persistent[].recovery_brief": "Path to markdown file injected after agent restart (used by WS3b)",
+    "persistent[].restart_delay_seconds": "Seconds to wait after launching before injecting recovery brief (used by WS3b)",
+    "persistent[].max_restarts_per_hour": "Restart budget — max restarts allowed per hour (used by WS3b)",
+    "persistent[].provider": "Provider backend: 'claude' or 'codex' (default: claude). Used by the adapter to select the correct CLI.",
+    "persistent[].max_session_age_minutes": "Optional. Max minutes a session runs before proactive restart for context refresh. null = no limit. Recommended: 480 for subconscious, 720 for CPO.",
+    "persistent[].critical": "Whether to send alerts on failure (used by WS3c alerting)",
+    "persistent[].pid_file": "For type 'process' only — path to the process PID file for liveness checks",
+    "ephemeral": "Configuration for temporary/short-lived sessions",
+    "ephemeral.patterns": "Array of tmux session name glob patterns considered ephemeral (e.g. 'sup-*', 'exec-*')",
+    "ephemeral.orphan_ttl_minutes": "Max age in minutes before an ephemeral session is considered orphaned (detected here, enforced by WS3c)"
+  },
+
+  "project": "REPLACE_WITH_PROJECT_NAME",
+  "tmux_server": "REPLACE_WITH_PROJECT_SLUG",
+  "watchdog_pid_file": "state/watchdog.pid",
+  "poll_interval_seconds": 30,
+
+  "persistent": [
+    {
+      "name": "cpo",
+      "provider": "claude",
+      "type": "agent",
+      "restart_command": "claude --dangerously-skip-permissions",
+      "recovery_brief": ".cpo/templates/recovery-brief-cpo.md",
+      "restart_delay_seconds": 15,
+      "max_restarts_per_hour": 3,
+      "max_session_age_minutes": 720,
+      "critical": true
+    },
+    {
+      "name": "subconscious",
+      "provider": "claude",
+      "type": "agent",
+      "restart_command": "claude --dangerously-skip-permissions",
+      "recovery_brief": ".cpo/templates/recovery-brief-subconscious.md",
+      "restart_delay_seconds": 15,
+      "max_restarts_per_hour": 3,
+      "max_session_age_minutes": 480,
+      "critical": true
+    },
+    {
+      "name": "slack-handler",
+      "provider": "claude",
+      "type": "process",
+      "restart_command": "python3 tools/slack_handler.py",
+      "pid_file": "state/slack-handler.pid",
+      "restart_delay_seconds": 5,
+      "max_restarts_per_hour": 5,
+      "critical": true
+    },
+    {
+      "name": "codex-worker",
+      "provider": "codex",
+      "type": "agent",
+      "restart_command": "codex --full-auto",
+      "restart_delay_seconds": 10,
+      "max_restarts_per_hour": 3,
+      "critical": false
+    }
+  ],
+
+  "ephemeral": {
+    "patterns": ["sup-*", "exec-*", "dispatch-*", "codex-*"],
+    "orphan_ttl_minutes": 120
+  },
+
+  "alerting": {
+    "telegram": false,
+    "slack": false,
+    "telegram_config": ".agent-comms/telegram.json",
+    "slack_config": ".agent-comms/slack.json"
+  }
+}
