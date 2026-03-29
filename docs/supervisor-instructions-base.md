@@ -2,9 +2,37 @@
 
 This file contains the generic procedures all supervisors follow. At dispatch time, `launch.py` combines this with the task-specific brief to produce `docs/supervisor-instructions.md` in the worktree.
 
+**YOUR ROLE: You DELEGATE work to the executor. You do NOT implement it yourself.**
+**You: brief → monitor → verify → commit → PR. The executor: implements.**
+
 ---
 
-## Monitoring Your Executor
+## STEP 1: Brief Your Executor (do this FIRST — before anything else)
+
+Your executor is running in a separate tmux session but has NO instructions yet. You must send it the task.
+
+```bash
+# 1. Read the brief below (the "Current Brief" section at the bottom of this file)
+# 2. Prepare a clear, specific task for the executor — include:
+#    - What to build (specific files, functions, changes)
+#    - How to verify (test commands, expected output)
+#    - What NOT to do (scope boundaries)
+
+# 3. Send it via tmux
+tmux send-keys -t <executor-session> "<task description>" Enter
+sleep 2
+tmux send-keys -t <executor-session> Enter
+
+# 4. Verify the executor received and started working
+sleep 15
+tmux capture-pane -t <executor-session> -p -S -5 | tail -5
+```
+
+**Do NOT skip this step. Do NOT implement the work yourself.** Even if the task seems simple, send it to the executor. Your job is supervision, not implementation.
+
+---
+
+## STEP 2: Monitor Your Executor
 
 After every command you send to the executor:
 1. `sleep 30` — let the executor process

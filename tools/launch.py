@@ -419,10 +419,12 @@ def launch_pair(args) -> dict:
         log("injecting brief into supervisor", json_mode)
         prompt = (
             f"Read docs/supervisor-instructions.md for your complete task brief. "
-            f"You are a supervisor — your executor is in tmux session '{exc}'. "
-            f"Implement the work described, commit on this branch, "
-            f"push and create a PR with `gh pr create`, and state "
-            f"'WORK COMPLETE — PR created, ready for review' when done."
+            f"You are a SUPERVISOR — you DELEGATE, you do NOT implement. "
+            f"Your executor is in tmux session '{exc}'. "
+            f"FIRST: send the task brief to your executor via tmux send-keys. "
+            f"THEN: monitor the executor's progress, verify its output, "
+            f"and when done: commit, push, create a PR with `gh pr create`, "
+            f"and state 'WORK COMPLETE — PR created, ready for review'."
         )
         step_inject_text(sup, prompt, server)
 
