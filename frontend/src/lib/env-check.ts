@@ -38,16 +38,10 @@ const ENV_VARS: EnvVar[] = [
     description: "Google Cloud Storage bucket for results",
   },
   {
-    name: "EMAIL_FROM",
-    required: true,
-    sensitive: false,
-    description: "Gmail address for sending magic link emails",
-  },
-  {
-    name: "EMAIL_APP_PASSWORD",
+    name: "RESEND_API_KEY",
     required: true,
     sensitive: true,
-    description: "Gmail App Password for SMTP",
+    description: "Resend API key for sending magic link emails",
   },
   {
     name: "JWT_SECRET",
