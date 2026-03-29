@@ -1,7 +1,7 @@
 # Project Envelope: Honest Image Tools Beta v1
 
 **Project ID:** PRJ-001
-**Status:** testing
+**Status:** testing (GATE BLOCKED — rescan in progress)
 **Created:** 2026-03-29
 **Briefs:** beta-01 (done), beta-02 (done), beta-03 (in progress), beta-04 (in progress), beta-05, beta-06, beta-07
 
