@@ -7,7 +7,7 @@
 ## Stage Progression
 
 ```
-POC → Architecture → Alpha (optional) → Beta → Production
+POC → Architecture → Alpha (optional) → Design → Beta → Production
 ```
 
 For full stage definitions, see `.cpo/research/project-lifecycle-enforcement.md`.
@@ -126,9 +126,64 @@ Auth, payments, deployment to production, performance optimization
 
 ---
 
-## Stage 4: Beta — "First release feature set"
+## Stage 4: Design — "How should this look and feel?"
 
-*Goal: Complete v1 feature set. Architecture + business logic followed properly. ~75-80% visual fidelity. Not hardened.*
+*Goal: Discover and codify the product's visual identity, UX patterns, and design language through competitive research, CEO alignment, and iterative mockups. This stage has the HIGHEST human involvement — frequent review cycles, not a single gate.*
+
+*Note: This stage is most relevant for user-facing products. For backend-heavy or data projects, this may focus on data schema design, API design, or dashboard layout instead of visual UI. Adapt the checklist to what "design" means for your project.*
+
+### Competitive Research
+- [ ] Screenshot 5-10 competitors using `/browser-navigate`
+- [ ] Document for each: what works visually, what doesn't, pricing presentation, trust signals
+- [ ] Identify 3-5 specific elements to adopt (e.g., "Let's Enhance's clean dark theme," "Upsampler's before/after slider")
+- [ ] Identify 3-5 anti-patterns to avoid (e.g., "imgupscaler.ai's crossed-out prices and urgency badges")
+- [ ] Present findings to CEO — "here's what the market looks like, here's what I recommend we borrow"
+
+### CEO Preferences
+- [ ] CEO provides initial direction: mood, feel, benchmarks they like
+      → This may come as voice messages, screenshots, references — capture and document
+- [ ] CEO identifies non-negotiables: "must feel honest/clean/professional/playful/etc."
+- [ ] Document as `.cpo/design-direction.md` — the design brief that guides all iterations
+
+### Style Exploration (iterative with CEO)
+- [ ] Create 5-10 visual mockup variations using Playwright screenshots
+      → These are real pages built with different CSS/layout approaches, not static images
+      → Each variation should be viewable at a URL or captured as a screenshot
+- [ ] Present variations to CEO — "here are 10 approaches, which direction resonates?"
+- [ ] CEO narrows to 2-3 candidates
+- [ ] Refine the candidates based on CEO feedback
+- [ ] CEO picks the final direction
+- [ ] **This is iterative** — expect 3-5 rounds of feedback. Do NOT treat this as a one-shot brief.
+
+### Codification
+- [ ] Extract the chosen style into reusable design tokens / CSS variables:
+      → Colors, typography, spacing, border radius, shadows
+      → Component patterns: buttons, cards, forms, headers
+- [ ] Document as a mini style guide: `.cpo/design-system.md`
+- [ ] Apply the codified style consistently across all pages
+- [ ] Final Playwright screenshots of every page — CEO reviews for consistency
+
+### Human Gate
+- [ ] CEO reviews final styled product: "This looks like something I'd trust with my credit card"
+- [ ] CEO EXPLICIT approval: "Design is locked. Proceed to Beta."
+- [ ] CEO EXPLICIT decision received. Positive engagement is NOT approval. If idle 2+ checks, ask: "Have you decided on the gate?" Do not advance without a clear answer.
+
+### Allowed Actions
+CSS, layout changes, component styling, design tokens, mockup variations, Playwright screenshots, competitive research
+
+### NOT Allowed
+New features, backend changes, auth/payment logic changes, deployment
+
+### Recommended Tools
+- **Browser-navigate** — screenshot competitors AND your own variations
+- **Panel** (`--role panel`) — evaluate design approaches from multiple perspectives
+- **Playwright** — capture and compare variations systematically
+
+---
+
+## Stage 5: Beta — "First release feature set"
+
+*Goal: Complete v1 feature set with the locked design applied. Architecture + business logic followed properly. Design at the level approved in Stage 4. Not hardened or optimized.*
 
 ### Feature Planning
 - [ ] Complete v1 feature list defined (must-have vs nice-to-have)
@@ -140,44 +195,39 @@ Auth, payments, deployment to production, performance optimization
       → E2E test scenario (full user flow after all briefs merge)
       → When 3+ briefs exist, an envelope is MANDATORY. Do not dispatch briefs without one.
 
-### Design
-- [ ] User experience direction chosen (2-3 visual approaches → pick one)
-      → Use Playwright screenshots for CEO review. Don't get stuck — MVP mindset.
-- [ ] Key user flows documented step-by-step
-      → For each flow: write a Playwright verification test
-
 ### Build
 - [ ] All v1 features implemented (follow architecture from Stage 2)
+- [ ] Design system from Stage 4 applied consistently
 - [ ] Auth implemented (basic — e.g., magic link)
 - [ ] Payments in sandbox/test mode
-- [ ] UI at ~75-80% visual fidelity
+- [ ] UI matches the approved design direction from Stage 4
 
 ### Integration + Test
 - [ ] Full end-to-end test passes (complete user flow)
-- [ ] Playwright E2E screenshots of every step
+- [ ] Playwright E2E screenshots of every step — compare against approved design
 - [ ] Basic security scan (security horizontal)
 - [ ] Strategic advisor review — any blind spots?
 
 ### Human Gate
-- [ ] Beta presented to CEO: "All v1 features, ~80% visual. Missing for production: [list]"
+- [ ] Beta presented to CEO: "All v1 features with approved design. Missing for production: [list]"
 - [ ] CEO EXPLICIT decision received. Positive engagement is NOT approval. If idle 2+ checks, ask: "Have you decided on the gate?" Do not advance without a clear answer.
 
 ### Allowed Actions
 All feature code, auth, sandbox payments, staging deploy, comprehensive testing
 
 ### NOT Allowed
-Live payment processing, production deploy, marketing launch
+Live payment processing, production deploy, marketing launch, design changes without CEO approval
 
 ### Recommended Tools
 - **Director** — manages the full brief set
 - **Planning** (`--role planning --preset standard`) — structure feature briefs
 - **Security horizontal** — basic scan
-- **Browser-navigate** / `/verify` — UI verification
+- **Browser-navigate** / `/verify` — UI verification against approved design
 - **SWOT** (`/swot`) — assess the beta
 
 ---
 
-## Stage 5: Production — "Harden, polish, ship"
+## Stage 6: Production — "Harden, polish, ship"
 
 *Goal: Everything needed to go live. Hardening, security, final polish, live payments, production deployment.*
 
