@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Header from "../../components/Header";
+import { useAuth } from "../../components/AuthProvider";
 import CostBreakdown from "../../components/CostBreakdown";
 import ImageComparison from "../../components/ImageComparison";
 
@@ -26,6 +28,7 @@ interface JobInfo {
 
 export default function UpscalePage() {
   const router = useRouter();
+  const { user, loading: authLoading, refresh: refreshAuth } = useAuth();
   const [stage, setStage] = useState<Stage>("preview");
   const [scaleFactor, setScaleFactor] = useState<number>(4);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -134,13 +137,26 @@ export default function UpscalePage() {
   const handleUpscale = async () => {
     if (!previewUrl) return;
 
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    const costCents = Math.ceil(pricing.total * 100);
+    if (user.balance_cents < costCents) {
+      setError(
+        `Insufficient balance. This costs $${pricing.total.toFixed(2)} but your balance is $${(user.balance_cents / 100).toFixed(2)}. Please add funds.`
+      );
+      setStage("error");
+      return;
+    }
+
     setStage("uploading");
     setError(null);
 
     try {
       // Convert data URL back to blob
       const dataUrl = sessionStorage.getItem("uploadFile")!;
-      const fileType = sessionStorage.getItem("uploadFileType") || "image/png";
       const res = await fetch(dataUrl);
       const blob = await res.blob();
 
@@ -167,6 +183,8 @@ export default function UpscalePage() {
           total: data.pricing.total,
         });
       }
+      // Refresh auth to update balance in header
+      refreshAuth();
       setStage("processing");
       setProgress(0);
       pollStatus(data.job_id);
@@ -270,7 +288,16 @@ export default function UpscalePage() {
               />
 
               {/* Action button */}
-              {stage === "preview" && (
+              {stage === "preview" && !authLoading && !user && (
+                <Link
+                  href="/login"
+                  className="block w-full rounded-lg bg-accent py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+                >
+                  Log in to upscale
+                </Link>
+              )}
+
+              {stage === "preview" && user && (
                 <button
                   onClick={handleUpscale}
                   className="w-full rounded-lg bg-accent py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
@@ -315,12 +342,21 @@ export default function UpscalePage() {
               {stage === "error" && (
                 <div className="space-y-3">
                   <p className="text-sm text-red-600">{error}</p>
-                  <button
-                    onClick={() => setStage("preview")}
-                    className="w-full rounded-lg border border-border py-3 text-sm font-medium transition-colors hover:bg-accent/5"
-                  >
-                    Try again
-                  </button>
+                  {error?.includes("Insufficient balance") || error?.includes("add funds") ? (
+                    <Link
+                      href="/account"
+                      className="block w-full rounded-lg bg-accent py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+                    >
+                      Add balance
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() => setStage("preview")}
+                      className="w-full rounded-lg border border-border py-3 text-sm font-medium transition-colors hover:bg-accent/5"
+                    >
+                      Try again
+                    </button>
+                  )}
                 </div>
               )}
 

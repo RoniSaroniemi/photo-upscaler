@@ -4,17 +4,19 @@ const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 export async function POST(request: NextRequest) {
   try {
+    const cookie = request.headers.get("cookie") || "";
     const formData = await request.formData();
 
     const backendRes = await fetch(`${BACKEND_URL}/upload`, {
       method: "POST",
+      headers: { Cookie: cookie },
       body: formData,
     });
 
     if (!backendRes.ok) {
-      const errorText = await backendRes.text();
+      const errorData = await backendRes.json().catch(() => ({}));
       return Response.json(
-        { error: errorText || "Upload failed" },
+        { error: errorData.detail || "Upload failed" },
         { status: backendRes.status }
       );
     }

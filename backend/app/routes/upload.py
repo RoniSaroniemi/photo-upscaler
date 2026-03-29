@@ -1,21 +1,48 @@
+import math
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 
 from app.config import settings
+from app.database import deduct_balance, get_session_user
 from app.services.storage import storage_service
 from app.services.upscaler import upscaler_service
 
 router = APIRouter()
 
+SESSION_COOKIE = "session_id"
+
 # In-memory job tracker (replaced by DB/Redis in production)
 jobs: dict[str, dict] = {}
 
 
+def _get_total_cost_cents() -> int:
+    """Get total cost per image in cents."""
+    return math.ceil((settings.COMPUTE_COST_PER_IMAGE + settings.PLATFORM_FEE_PER_IMAGE) * 100)
+
+
 @router.post("/upload")
-async def upload_image(file: UploadFile = File(...)):
+async def upload_image(request: Request, file: UploadFile = File(...)):
+    # Check authentication
+    session_id = request.cookies.get(SESSION_COOKIE)
+    user = None
+    if session_id:
+        user = get_session_user(session_id)
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Please log in to upscale images")
+
+    # Check balance
+    cost_cents = _get_total_cost_cents()
+    if user["balance_cents"] < cost_cents:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Insufficient balance. This image costs ${cost_cents / 100:.2f}. "
+            f"Your balance is ${user['balance_cents'] / 100:.2f}. Please add funds.",
+        )
+
     # Validate extension
     ext = Path(file.filename or "").suffix.lower()
     if ext not in settings.ALLOWED_EXTENSIONS:
@@ -37,7 +64,7 @@ async def upload_image(file: UploadFile = File(...)):
     job_id = str(uuid.uuid4())
     input_path = storage_service.save_upload(job_id, ext, contents)
 
-    jobs[job_id] = {"status": "queued", "input_path": str(input_path), "output_path": None}
+    jobs[job_id] = {"status": "queued", "input_path": str(input_path), "output_path": None, "user_id": user["id"]}
 
     # Process synchronously for MVP (async worker in production)
     try:
@@ -46,11 +73,25 @@ async def upload_image(file: UploadFile = File(...)):
         jobs[job_id]["status"] = "completed"
         jobs[job_id]["output_path"] = result["output_path"]
         jobs[job_id]["processing_time"] = result["processing_time"]
+
+        # Deduct balance after successful processing
+        new_balance = deduct_balance(
+            user["id"],
+            cost_cents,
+            f"Image upscale: {file.filename or 'unknown'}",
+        )
+        if new_balance is not None:
+            jobs[job_id]["new_balance_cents"] = new_balance
     except Exception as e:
         jobs[job_id]["status"] = "failed"
         jobs[job_id]["error"] = str(e)
 
-    return {"job_id": job_id, "status": jobs[job_id]["status"]}
+    return {
+        "job_id": job_id,
+        "status": jobs[job_id]["status"],
+        "cost_cents": cost_cents,
+        "new_balance_cents": jobs[job_id].get("new_balance_cents"),
+    }
 
 
 @router.get("/status/{job_id}")

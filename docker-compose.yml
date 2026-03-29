@@ -13,6 +13,9 @@ services:
       - SCALE_FACTOR=4
       - COMPUTE_COST_PER_IMAGE=0.02
       - PLATFORM_FEE_PER_IMAGE=0.03
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
     volumes:
       - ./backend/app:/app/app
     restart: unless-stopped
