@@ -1,0 +1,106 @@
+# Cloud Build CI/CD — builds and deploys backend + frontend to Cloud Run
+#
+# Trigger: push to main branch
+# Required substitutions (set in trigger or via --substitutions):
+#   _REGION:           us-central1
+#   _REPO:             photo-upscaler
+#   _BACKEND_SERVICE:  photo-upscaler-backend
+#   _FRONTEND_SERVICE: photo-upscaler-frontend
+
+substitutions:
+  _REGION: us-central1
+  _REPO: photo-upscaler
+  _BACKEND_SERVICE: photo-upscaler-backend
+  _FRONTEND_SERVICE: photo-upscaler-frontend
+
+steps:
+  # ── Backend ──
+
+  - id: build-backend
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_BACKEND_SERVICE}:$SHORT_SHA
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_BACKEND_SERVICE}:latest
+      - ./backend
+
+  - id: push-backend
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - --all-tags
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_BACKEND_SERVICE}
+    waitFor: [build-backend]
+
+  - id: deploy-backend
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_BACKEND_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_BACKEND_SERVICE}:$SHORT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+      - --memory=4Gi
+      - --cpu=4
+      - --timeout=300s
+      - --concurrency=1
+      - --max-instances=5
+      - --min-instances=0
+      - --allow-unauthenticated
+      - --set-env-vars=PORT=8080,TEMP_DIR=/tmp/upscaler,MODEL_NAME=RealESRGAN_x4plus,SCALE_FACTOR=4,COMPUTE_COST_PER_IMAGE=0.02,PLATFORM_FEE_PER_IMAGE=0.03
+    waitFor: [push-backend]
+
+  # ── Frontend ──
+
+  - id: build-frontend
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_FRONTEND_SERVICE}:$SHORT_SHA
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_FRONTEND_SERVICE}:latest
+      - ./frontend
+    waitFor: ['-']  # start immediately, parallel with backend build
+
+  - id: push-frontend
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - --all-tags
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_FRONTEND_SERVICE}
+    waitFor: [build-frontend]
+
+  - id: deploy-frontend
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_FRONTEND_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_FRONTEND_SERVICE}:$SHORT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+      - --memory=512Mi
+      - --cpu=1
+      - --timeout=60s
+      - --concurrency=80
+      - --max-instances=5
+      - --min-instances=0
+      - --allow-unauthenticated
+      - --set-env-vars=NODE_ENV=production
+    waitFor: [push-frontend, deploy-backend]
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_BACKEND_SERVICE}:$SHORT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_BACKEND_SERVICE}:latest
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_FRONTEND_SERVICE}:$SHORT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_FRONTEND_SERVICE}:latest
+
+timeout: 1800s
+options:
+  logging: CLOUD_LOGGING_ONLY
