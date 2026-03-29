@@ -39,7 +39,7 @@ For full stage definitions, see `.cpo/research/project-lifecycle-enforcement.md`
 
 ### Human Gate
 - [ ] Findings presented to CEO: what we learned, what works, what doesn't
-- [ ] CEO decision: proceed to Architecture / pivot / more POC work
+- [ ] CEO EXPLICIT decision received. The CEO must say "proceed to [next stage]" or equivalent. Positive engagement (questions, doc requests, discussion) is NOT approval. If no explicit decision after presenting, ask: "Have you decided on the gate? Proceed / pivot / more work?" Do not advance without a clear answer.
 
 ### Allowed Actions
 Research, experiments, throwaway prototypes, panels, cost benchmarks
@@ -79,7 +79,7 @@ Production code, auth, payments, deployment, polished UI
 
 ### Human Gate
 - [ ] Architecture presented to CEO with ADRs and reasoning
-- [ ] CEO decision: approve architecture / adjust / more POC needed
+- [ ] CEO EXPLICIT decision received. The CEO must say "proceed" or "approved." Positive engagement is NOT approval. If idle 2+ checks with no explicit decision, ask: "Have you decided on the gate?" Do not advance without a clear answer.
 
 ### Allowed Actions
 Schema design, API contracts, scaffold generation, ADR writing, integration POCs
@@ -110,7 +110,7 @@ Feature code, UI beyond wireframes, auth/payment integration
 
 ### Human Gate
 - [ ] Core flow demoed to CEO: "Here's the product working end-to-end, core features only"
-- [ ] CEO decision: proceed to Beta / adjust core / revisit architecture
+- [ ] CEO EXPLICIT decision received. Positive engagement is NOT approval. If idle 2+ checks, ask: "Have you decided on the gate?" Do not advance without a clear answer.
 
 ### Allowed Actions
 Core feature code, basic UI, automated tests for core features
@@ -154,7 +154,7 @@ Auth, payments, deployment to production, performance optimization
 
 ### Human Gate
 - [ ] Beta presented to CEO: "All v1 features, ~80% visual. Missing for production: [list]"
-- [ ] CEO decision: proceed to Production / iterate / change direction
+- [ ] CEO EXPLICIT decision received. Positive engagement is NOT approval. If idle 2+ checks, ask: "Have you decided on the gate?" Do not advance without a clear answer.
 
 ### Allowed Actions
 All feature code, auth, sandbox payments, staging deploy, comprehensive testing
