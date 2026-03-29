@@ -1,6 +1,7 @@
-import { requireAuth } from "@/lib/auth";
+import { createHash } from "crypto";
+import { getAuthUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { balances, jobs } from "@/lib/db/schema";
+import { balances, jobs, freeTrialUses } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { estimateCost, calculateActualCost } from "@/lib/pricing/cost";
 import { formatMicrodollars } from "@/lib/pricing/format";
@@ -11,13 +12,47 @@ import { uploadResult, generateSignedUrl } from "@/lib/storage/gcs";
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_DIMENSION = 1024;
 const ALLOWED_MIME_PREFIXES = ["image/"];
+const FREE_TRIAL_LIMIT = 2;
+
+function getClientIp(request: Request): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return "127.0.0.1";
+}
+
+function hashIp(ip: string): string {
+  return createHash("sha256").update(ip).digest("hex");
+}
 
 export async function POST(request: Request) {
-  let user;
-  try {
-    user = await requireAuth();
-  } catch {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  // Try auth — don't throw, check trial if no user
+  const user = await getAuthUser();
+
+  let isTrial = false;
+  let ipHash = "";
+  let trialUsesCount = 0;
+
+  if (!user) {
+    // Check free trial eligibility
+    const ip = getClientIp(request);
+    ipHash = hashIp(ip);
+
+    const trialResult = await db
+      .select()
+      .from(freeTrialUses)
+      .where(eq(freeTrialUses.ipHash, ipHash))
+      .limit(1);
+
+    trialUsesCount = trialResult[0]?.usesCount ?? 0;
+
+    if (trialUsesCount >= FREE_TRIAL_LIMIT) {
+      return Response.json(
+        { error: "Free trial exhausted. Sign in and add funds." },
+        { status: 401 }
+      );
+    }
+
+    isTrial = true;
   }
 
   // Parse multipart form data
@@ -100,37 +135,44 @@ export async function POST(request: Request) {
   // Estimate cost
   const estimated = estimateCost(inputWidth, inputHeight);
 
-  // Check balance
-  const balanceResult = await db
-    .select()
-    .from(balances)
-    .where(eq(balances.userId, user.id))
-    .limit(1);
+  // For authenticated users: check balance
+  if (!isTrial && user) {
+    const balanceResult = await db
+      .select()
+      .from(balances)
+      .where(eq(balances.userId, user.id))
+      .limit(1);
 
-  const balanceMicrodollars = balanceResult[0]?.amountMicrodollars ?? BigInt(0);
+    const balanceMicrodollars =
+      balanceResult[0]?.amountMicrodollars ?? BigInt(0);
 
-  if (balanceMicrodollars < BigInt(estimated.total_microdollars)) {
-    return Response.json(
-      {
-        error: "Insufficient balance",
-        balance_microdollars: balanceMicrodollars.toString(),
-        required_microdollars: estimated.total_microdollars.toString(),
-      },
-      { status: 402 }
-    );
+    if (balanceMicrodollars < BigInt(estimated.total_microdollars)) {
+      return Response.json(
+        {
+          error: "Insufficient balance",
+          balance_microdollars: balanceMicrodollars.toString(),
+          required_microdollars: estimated.total_microdollars.toString(),
+        },
+        { status: 402 }
+      );
+    }
   }
 
-  // Create pending job
-  const [job] = await db
-    .insert(jobs)
-    .values({
-      userId: user.id,
-      status: "pending",
-      inputWidth,
-      inputHeight,
-      inputFileSize: imageBuffer.length,
-    })
-    .returning({ id: jobs.id });
+  // Create pending job only for authenticated users
+  let jobId: string | null = null;
+  if (user) {
+    const [job] = await db
+      .insert(jobs)
+      .values({
+        userId: user.id,
+        status: "pending",
+        inputWidth,
+        inputHeight,
+        inputFileSize: imageBuffer.length,
+      })
+      .returning({ id: jobs.id });
+    jobId = job.id;
+  }
 
   // Call inference service
   try {
@@ -143,23 +185,69 @@ export async function POST(request: Request) {
     const { gcsKey } = await uploadResult(result.resultBuffer, "image/webp");
     const downloadUrl = await generateSignedUrl(gcsKey);
 
-    // Deduct balance with actual cost
+    if (isTrial) {
+      // Increment free trial usage
+      const existing = await db
+        .select()
+        .from(freeTrialUses)
+        .where(eq(freeTrialUses.ipHash, ipHash))
+        .limit(1);
+
+      if (existing.length > 0) {
+        await db
+          .update(freeTrialUses)
+          .set({
+            usesCount: existing[0].usesCount + 1,
+            lastUseAt: new Date(),
+          })
+          .where(eq(freeTrialUses.ipHash, ipHash));
+      } else {
+        await db.insert(freeTrialUses).values({
+          ipHash,
+          usesCount: 1,
+        });
+      }
+
+      const newRemaining = FREE_TRIAL_LIMIT - (trialUsesCount + 1);
+
+      return Response.json({
+        status: "completed",
+        trial: true,
+        remaining: newRemaining,
+        cost_breakdown: {
+          compute_microdollars: actual.compute_microdollars,
+          platform_fee_microdollars: actual.platform_fee_microdollars,
+          total_microdollars: actual.total_microdollars,
+          processing_seconds: actual.processing_seconds,
+          formatted_total: formatMicrodollars(
+            BigInt(actual.total_microdollars)
+          ),
+        },
+        download_url: downloadUrl,
+        processing_time_ms: result.processingTimeMs,
+        dimensions: {
+          input: { width: inputWidth, height: inputHeight },
+          output: { width: result.outputWidth, height: result.outputHeight },
+        },
+      });
+    }
+
+    // Authenticated user flow: deduct balance
     const deducted = await deductBalance(
-      user.id,
+      user!.id,
       BigInt(actual.total_microdollars),
-      job.id,
+      jobId!,
       `Upscale ${inputWidth}x${inputHeight} → ${result.outputWidth}x${result.outputHeight}`
     );
 
     if (!deducted) {
-      // Race condition: balance dropped between check and deduction
       await db
         .update(jobs)
         .set({
           status: "failed",
           errorMessage: "Balance deduction failed",
         })
-        .where(eq(jobs.id, job.id));
+        .where(eq(jobs.id, jobId!));
 
       return Response.json(
         { error: "Balance deduction failed" },
@@ -182,17 +270,19 @@ export async function POST(request: Request) {
         outputGcsKey: gcsKey,
         completedAt: new Date(),
       })
-      .where(eq(jobs.id, job.id));
+      .where(eq(jobs.id, jobId!));
 
     return Response.json({
-      job_id: job.id,
+      job_id: jobId,
       status: "completed",
       cost_breakdown: {
         compute_microdollars: actual.compute_microdollars,
         platform_fee_microdollars: actual.platform_fee_microdollars,
         total_microdollars: actual.total_microdollars,
         processing_seconds: actual.processing_seconds,
-        formatted_total: formatMicrodollars(BigInt(actual.total_microdollars)),
+        formatted_total: formatMicrodollars(
+          BigInt(actual.total_microdollars)
+        ),
       },
       download_url: downloadUrl,
       processing_time_ms: result.processingTimeMs,
@@ -202,19 +292,21 @@ export async function POST(request: Request) {
       },
     });
   } catch (err) {
-    // Update job to failed
     const errorMessage =
       err instanceof Error ? err.message : "Unknown error";
-    await db
-      .update(jobs)
-      .set({
-        status: "failed",
-        errorMessage,
-      })
-      .where(eq(jobs.id, job.id));
+
+    if (jobId) {
+      await db
+        .update(jobs)
+        .set({
+          status: "failed",
+          errorMessage,
+        })
+        .where(eq(jobs.id, jobId));
+    }
 
     return Response.json(
-      { error: "Upscale failed", detail: errorMessage, job_id: job.id },
+      { error: "Upscale failed", detail: errorMessage, job_id: jobId },
       { status: 500 }
     );
   }
