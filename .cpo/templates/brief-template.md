@@ -91,27 +91,81 @@
 
 ---
 
-## 6. Verification & Evidence
+## 6. Prerequisites (verify BEFORE building)
+
+*What must be true before the executor writes a single line of code? If these aren't met, the code can't be tested.*
+
+- [ ] [e.g., "Email provider configured: `curl -X POST https://api.resend.com/emails -H 'Authorization: Bearer $RESEND_API_KEY'` returns 200"]
+- [ ] [e.g., "Database accessible: `psql $DATABASE_URL -c 'SELECT 1'` succeeds"]
+- [ ] [e.g., "Test image exists at `tests/fixtures/test-image.jpg`"]
+
+*If a prerequisite fails, STOP. Fix the prerequisite first or escalate to CPO. Do not build on a broken foundation.*
+
+---
+
+## 7. Acceptance Test (how we PROVE this works)
+
+*A concrete, runnable test that proves the deliverables work. Not checkboxes — an actual command or scenario. The executor must run this and include the output as evidence.*
+
+```bash
+# Example acceptance test — replace with your brief's specific test:
+# 1. Start the app
+npm run dev &
+sleep 5
+
+# 2. [Test the specific thing this brief builds]
+curl -X POST localhost:3000/api/[endpoint] \
+  -H "Content-Type: application/json" \
+  -d '{"key": "value"}' \
+  | python3 -m json.tool
+
+# Expected: [describe what a passing response looks like]
+
+# 3. Verify side effects
+# [e.g., check database was updated, file was created, email was sent]
+```
+
+*If you cannot write a concrete acceptance test for this brief, the brief is too vague. Refine it before dispatching.*
+
+---
+
+## 8. Verification & Evidence
 
 ### Tests
-| Test | What It Verifies |
-|------|-----------------|
-| [test name] | [what it proves] |
+| Test | What It Verifies | Level |
+|------|-----------------|-------|
+| [test name] | [what it proves] | [2/3/4] |
+
+### Required Evidence (must be included in the PR)
+
+*The supervisor MUST produce these artifacts and include them in the PR description. Without evidence, the PR should not be merged.*
+
+| Evidence | Format | How to Produce |
+|----------|--------|---------------|
+| App health check | Terminal output | `curl localhost:PORT/api/health` |
+| [Core flow test result] | Terminal output or screenshot | [specific command or Playwright script] |
+| [Playwright screenshot of key page] | PNG file path | `python3 -c "from playwright..."` then Read the image |
+| Test suite output | Terminal output | `npm test` or `python3 -m pytest` |
+
+*Minimum: health check output + one core flow test. If the brief changes UI, include a Playwright screenshot.*
 
 ### Acceptance Criteria
 - [ ] [Criterion 1]
 - [ ] [Criterion 2]
-- [ ] [Build succeeds, all tests pass]
+- [ ] Build succeeds (Level 1)
+- [ ] App starts and health check passes (Level 2)
+- [ ] Core flow works end-to-end (Level 3 — required for gate-relevant briefs)
+- [ ] All required evidence produced and included in PR
 
 ---
 
-## 7. What This Does NOT Include
+## 9. What This Does NOT Include
 
 [Explicitly list out-of-scope items to prevent scope creep]
 
 ---
 
-## 8. Challenge Points
+## 10. Challenge Points
 
 *Assumptions the executor should verify or push back on during implementation. Don't blindly follow the plan — if any of these turn out to be wrong, adjust and document why.*
 
@@ -121,7 +175,7 @@
 
 ---
 
-## 9. Risks & Mitigations
+## 11. Risks & Mitigations
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|

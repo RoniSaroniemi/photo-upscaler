@@ -254,14 +254,32 @@ Everything
 
 ---
 
+## Verification Levels
+
+*Every verification claim must state which level was achieved. Lifecycle gates require Level 3.*
+
+| Level | Name | What It Proves | Example |
+|-------|------|---------------|---------|
+| 0 | Exists | Files are present | `ls src/app/api/upload/route.ts` → exists |
+| 1 | Compiles | Code has no syntax/type errors | `npm run build` passes, `tsc --noEmit` clean |
+| 2 | Runs | App starts and responds to health checks | `npm run dev` + `curl localhost:3000/api/health` → 200 |
+| 3 | **Flow works** | **Core user journey completes end-to-end** | Upload image → process → download result (actual file, not just HTTP 200) |
+| 4 | Edge cases | Error paths, limits, and abuse scenarios handled | Invalid file type → proper error, oversized image → rejection, concurrent requests → no race condition |
+
+**Level 0-1 is NOT verification — it's inventory counting.**
+**Level 2 is the minimum for supervisor WORK COMPLETE.**
+**Level 3 is required at every lifecycle gate.**
+**Level 4 is required before Production stage.**
+
 ## Verification-Before-Expansion
 
 *Before creating ANY new briefs at any stage:*
 
-- [ ] Have you RUN the current build? (not just committed — actually executed it)
-- [ ] Have you TESTED every existing feature? (manual or automated, `/verify` recommended)
+- [ ] Have you RUN the current build? (Level 2 minimum — app starts and health check passes)
+- [ ] Have you TESTED the core user flow? (Level 3 — actual user journey, not just HTTP 200)
 - [ ] Have you CAPTURED evidence? (Playwright screenshots, test output, API responses)
 - [ ] Has evidence been REVIEWED? (by you, the director, or presented to human at gates)
 - [ ] Has the human APPROVED expanding scope? (at stage gates)
 
 **If any answer is NO → do not create new briefs. Verify first.**
+**"Build passes" is Level 1. That is NOT sufficient.**

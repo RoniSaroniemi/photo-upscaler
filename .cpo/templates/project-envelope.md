@@ -82,14 +82,29 @@ Phase C (after Phase B merges):
 
 ## 5. E2E Test Plan
 
-*The definitive test that proves the whole project works. This is typically the final brief in the split. Define it here so all earlier briefs are building toward a testable outcome.*
+*The definitive test that proves the whole project works. This must be an EXECUTABLE SCRIPT, not just a checklist. The script runs the actual user journey and reports pass/fail.*
 
 **Scenario:** [Concrete, realistic test scenario with specific inputs and expected outputs]
 
+**Test script** (create as `scripts/e2e-test.sh` or `tests/e2e.spec.ts`):
+```bash
+# This script MUST be executable and produce clear pass/fail output.
+# It should test the ACTUAL user journey, not just check HTTP status codes.
+# Include: real file uploads, real form submissions, real payment flows (test mode).
+# Example:
+#   1. Start the app
+#   2. Upload a test image (include test-image.jpg in the repo)
+#   3. Verify output image dimensions > input
+#   4. Check cost was calculated correctly
+#   5. Verify balance was deducted
+```
+
+**Verification level required:** Level 3 minimum (flow works end-to-end). See lifecycle.md Verification Levels.
+
 **Verification Checklist:**
-| # | Check | Expected | How to Verify |
-|---|-------|----------|---------------|
-| 1 | [Check] | [Expected result] | [Command or observation] |
+| # | Check | Expected | How to Verify | Level |
+|---|-------|----------|---------------|-------|
+| 1 | [Check] | [Expected result] | [Command or observation] | [2/3/4] |
 
 **Model/Cost:** [Which model to use for E2E test — typically sonnet or haiku for cost efficiency]
 

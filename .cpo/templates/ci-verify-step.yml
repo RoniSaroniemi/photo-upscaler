@@ -1,0 +1,80 @@
+# Reusable CI verification step — add to your project's .github/workflows/ci.yml
+# This step runs after build/test and verifies the PR includes required evidence.
+#
+# Add this as an additional job or step in your CI pipeline:
+
+  verify-evidence:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check PR description has evidence
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          echo "Checking PR description for required evidence..."
+
+          # Check for verification level declaration
+          if ! echo "$PR_BODY" | grep -qi "level.*[2-4]\|level achieved"; then
+            echo "::error::PR description must declare a verification level (Level 2, 3, or 4)"
+            echo "See lifecycle.md for verification level definitions."
+            exit 1
+          fi
+
+          # Check for evidence section
+          if ! echo "$PR_BODY" | grep -qi "evidence\|health check\|curl.*localhost\|test.*output"; then
+            echo "::error::PR description must include an Evidence section with actual test output"
+            echo "Include: health check output, core flow test result, or Playwright screenshots."
+            exit 1
+          fi
+
+          # Check it's not just placeholder text
+          if echo "$PR_BODY" | grep -qi "paste.*here\|TBD\|TODO\|to be"; then
+            echo "::warning::PR evidence section may contain placeholder text"
+          fi
+
+          echo "✓ PR description includes verification evidence"
+
+      - name: Check for anti-patterns in changed files
+        run: |
+          echo "Scanning changed files for anti-patterns..."
+          ISSUES=0
+
+          # Get changed files
+          git diff --name-only origin/main...HEAD > /tmp/changed_files.txt
+
+          # Check for REPLACE_ME, TODO, FIXME, hardcoded secrets
+          while IFS= read -r file; do
+            [ -f "$file" ] || continue
+
+            if grep -n "REPLACE_ME" "$file" 2>/dev/null; then
+              echo "::error file=$file::Found REPLACE_ME placeholder"
+              ISSUES=$((ISSUES + 1))
+            fi
+
+            if grep -n "sk_live_\|pk_live_\|password.*=.*['\"]" "$file" 2>/dev/null | grep -v "\.example\|\.template\|test\|mock"; then
+              echo "::error file=$file::Possible hardcoded secret"
+              ISSUES=$((ISSUES + 1))
+            fi
+          done < /tmp/changed_files.txt
+
+          if [ $ISSUES -gt 0 ]; then
+            echo "::error::Found $ISSUES anti-pattern(s) in changed files"
+            exit 1
+          fi
+
+          echo "✓ No anti-patterns found in changed files"
+
+      - name: Run project verification script (if exists)
+        run: |
+          if [ -f "scripts/verify.sh" ]; then
+            echo "Running project verification script..."
+            bash scripts/verify.sh
+          elif [ -f "scripts/test.sh" ]; then
+            echo "Running project test script..."
+            bash scripts/test.sh
+          else
+            echo "No verification script found (scripts/verify.sh or scripts/test.sh)"
+            echo "Consider adding one for automated verification."
+          fi
