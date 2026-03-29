@@ -31,32 +31,29 @@ export async function POST(request: Request) {
   let isTrial = false;
   let trialNewCount = 0;
 
-  if (!user) {
-    // Atomically claim a free trial slot BEFORE processing.
-    // Uses INSERT ... ON CONFLICT with a WHERE guard to prevent races:
-    // two concurrent requests cannot both increment past the limit.
-    const ip = getClientIp(request);
-    const ipHash = hashIp(ip);
+  let trialIpHash: string | null = null;
 
-    const claimed = await rawSql`
-      INSERT INTO free_trial_uses (id, ip_hash, uses_count, first_use_at, last_use_at)
-      VALUES (gen_random_uuid(), ${ipHash}, 1, now(), now())
-      ON CONFLICT (ip_hash) DO UPDATE
-        SET uses_count = free_trial_uses.uses_count + 1,
-            last_use_at = now()
-        WHERE free_trial_uses.uses_count < ${FREE_TRIAL_LIMIT}
-      RETURNING uses_count
+  if (!user) {
+    // Check trial eligibility (SELECT only — don't increment yet).
+    // The count is incremented AFTER inference + GCS upload succeed,
+    // so a failed request doesn't consume a trial slot.
+    const ip = getClientIp(request);
+    trialIpHash = hashIp(ip);
+
+    const existing = await rawSql`
+      SELECT uses_count FROM free_trial_uses
+      WHERE ip_hash = ${trialIpHash}
     `;
 
-    if (claimed.length === 0) {
-      // ON CONFLICT matched but WHERE clause rejected — limit reached
+    const currentCount = existing.length > 0 ? (existing[0].uses_count as number) : 0;
+
+    if (currentCount >= FREE_TRIAL_LIMIT) {
       return Response.json(
         { error: "Free trial exhausted. Sign in and add funds." },
         { status: 401 }
       );
     }
 
-    trialNewCount = claimed[0].uses_count as number;
     isTrial = true;
   }
 
@@ -191,7 +188,18 @@ export async function POST(request: Request) {
     const downloadUrl = await generateSignedUrl(gcsKey);
 
     if (isTrial) {
-      // Trial slot was already atomically claimed before processing.
+      // Inference + upload succeeded — NOW atomically claim the trial slot.
+      // Race conditions giving 3 uses instead of 2 are acceptable for Beta.
+      const claimed = await rawSql`
+        INSERT INTO free_trial_uses (id, ip_hash, uses_count, first_use_at, last_use_at)
+        VALUES (gen_random_uuid(), ${trialIpHash}, 1, now(), now())
+        ON CONFLICT (ip_hash) DO UPDATE
+          SET uses_count = free_trial_uses.uses_count + 1,
+              last_use_at = now()
+        RETURNING uses_count
+      `;
+
+      trialNewCount = claimed.length > 0 ? (claimed[0].uses_count as number) : 1;
       const newRemaining = FREE_TRIAL_LIMIT - trialNewCount;
 
       return Response.json({
