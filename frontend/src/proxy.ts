@@ -2,11 +2,17 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyJwt } from "@/lib/auth/jwt";
 
-const protectedApiPrefixes = ["/api/balance", "/api/upscale"];
+const protectedApiPrefixes = ["/api/balance", "/api/upscale/jobs"];
 const protectedPagePrefixes = ["/account"];
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
+
+  // POST /api/upscale handles auth internally (supports both
+  // authenticated users and anonymous free-trial users).
+  if (path === "/api/upscale" && request.method === "POST") {
+    return NextResponse.next();
+  }
 
   const isProtectedApi = protectedApiPrefixes.some((p) =>
     path.startsWith(p)
@@ -33,5 +39,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/balance/:path*", "/api/upscale/:path*", "/account/:path*"],
+  matcher: ["/api/balance/:path*", "/api/upscale", "/api/upscale/:path*", "/account/:path*"],
 };
