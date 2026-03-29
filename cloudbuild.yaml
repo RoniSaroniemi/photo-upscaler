@@ -1,0 +1,105 @@
+substitutions:
+  _REGION: us-central1
+  _PROJECT_ID: photo-upscaler-24h
+
+steps:
+  # Step 1: Build inference image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/images/inference:${SHORT_SHA}'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/images/inference:latest'
+      - './inference'
+    id: 'build-inference'
+
+  # Step 2: Build frontend image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/images/frontend:${SHORT_SHA}'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/images/frontend:latest'
+      - './frontend'
+    id: 'build-frontend'
+
+  # Step 3: Deploy inference to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'inference-staging'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/images/inference:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--cpu'
+      - '4'
+      - '--memory'
+      - '8Gi'
+      - '--concurrency'
+      - '1'
+      - '--timeout'
+      - '120'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '5'
+      - '--no-allow-unauthenticated'
+    id: 'deploy-inference'
+    waitFor: ['build-inference']
+
+  # Step 4: Deploy frontend to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'frontend-staging'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/images/frontend:${SHORT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--cpu'
+      - '1'
+      - '--memory'
+      - '512Mi'
+      - '--concurrency'
+      - '80'
+      - '--timeout'
+      - '120'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '3'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'NODE_ENV=production'
+      - '--set-secrets'
+      - 'DATABASE_URL=DATABASE_URL:latest,STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest,STRIPE_PUBLISHABLE_KEY=STRIPE_PUBLISHABLE_KEY:latest,STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET:latest,EMAIL_FROM=EMAIL_FROM:latest,EMAIL_APP_PASSWORD=EMAIL_APP_PASSWORD:latest,JWT_SECRET=JWT_SECRET:latest,GCS_BUCKET_NAME=GCS_BUCKET_NAME:latest,NEXT_PUBLIC_BASE_URL=NEXT_PUBLIC_BASE_URL:latest,INFERENCE_SERVICE_URL=INFERENCE_SERVICE_URL:latest'
+    id: 'deploy-frontend'
+    waitFor: ['build-frontend']
+
+  # Step 5: Health check both services
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Checking inference service health..."
+        INFERENCE_URL=$(gcloud run services describe inference-staging --region=${_REGION} --format='value(status.url)')
+        echo "Inference URL: $${INFERENCE_URL}"
+
+        echo "Checking frontend service health..."
+        FRONTEND_URL=$(gcloud run services describe frontend-staging --region=${_REGION} --format='value(status.url)')
+        curl -sf "$${FRONTEND_URL}/api/health" || (echo "Frontend health check failed" && exit 1)
+        echo "All health checks passed"
+    id: 'health-check'
+    waitFor: ['deploy-inference', 'deploy-frontend']
+
+images:
+  - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/images/inference:${SHORT_SHA}'
+  - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/images/inference:latest'
+  - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/images/frontend:${SHORT_SHA}'
+  - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/images/frontend:latest'
