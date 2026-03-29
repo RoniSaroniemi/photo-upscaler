@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { getAuthUser } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { balances, jobs, freeTrialUses } from "@/lib/db/schema";
+import { db, sql as rawSql } from "@/lib/db";
+import { balances, jobs } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { estimateCost, calculateActualCost } from "@/lib/pricing/cost";
 import { formatMicrodollars } from "@/lib/pricing/format";
@@ -29,29 +29,34 @@ export async function POST(request: Request) {
   const user = await getAuthUser();
 
   let isTrial = false;
-  let ipHash = "";
-  let trialUsesCount = 0;
+  let trialNewCount = 0;
 
   if (!user) {
-    // Check free trial eligibility
+    // Atomically claim a free trial slot BEFORE processing.
+    // Uses INSERT ... ON CONFLICT with a WHERE guard to prevent races:
+    // two concurrent requests cannot both increment past the limit.
     const ip = getClientIp(request);
-    ipHash = hashIp(ip);
+    const ipHash = hashIp(ip);
 
-    const trialResult = await db
-      .select()
-      .from(freeTrialUses)
-      .where(eq(freeTrialUses.ipHash, ipHash))
-      .limit(1);
+    const claimed = await rawSql`
+      INSERT INTO free_trial_uses (id, ip_hash, uses_count, first_use_at, last_use_at)
+      VALUES (gen_random_uuid(), ${ipHash}, 1, now(), now())
+      ON CONFLICT (ip_hash) DO UPDATE
+        SET uses_count = free_trial_uses.uses_count + 1,
+            last_use_at = now()
+        WHERE free_trial_uses.uses_count < ${FREE_TRIAL_LIMIT}
+      RETURNING uses_count
+    `;
 
-    trialUsesCount = trialResult[0]?.usesCount ?? 0;
-
-    if (trialUsesCount >= FREE_TRIAL_LIMIT) {
+    if (claimed.length === 0) {
+      // ON CONFLICT matched but WHERE clause rejected — limit reached
       return Response.json(
         { error: "Free trial exhausted. Sign in and add funds." },
         { status: 401 }
       );
     }
 
+    trialNewCount = claimed[0].uses_count as number;
     isTrial = true;
   }
 
@@ -186,29 +191,8 @@ export async function POST(request: Request) {
     const downloadUrl = await generateSignedUrl(gcsKey);
 
     if (isTrial) {
-      // Increment free trial usage
-      const existing = await db
-        .select()
-        .from(freeTrialUses)
-        .where(eq(freeTrialUses.ipHash, ipHash))
-        .limit(1);
-
-      if (existing.length > 0) {
-        await db
-          .update(freeTrialUses)
-          .set({
-            usesCount: existing[0].usesCount + 1,
-            lastUseAt: new Date(),
-          })
-          .where(eq(freeTrialUses.ipHash, ipHash));
-      } else {
-        await db.insert(freeTrialUses).values({
-          ipHash,
-          usesCount: 1,
-        });
-      }
-
-      const newRemaining = FREE_TRIAL_LIMIT - (trialUsesCount + 1);
+      // Trial slot was already atomically claimed before processing.
+      const newRemaining = FREE_TRIAL_LIMIT - trialNewCount;
 
       return Response.json({
         status: "completed",

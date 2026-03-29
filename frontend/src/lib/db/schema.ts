@@ -8,6 +8,7 @@ import {
   bigint,
   pgEnum,
   index,
+  uniqueIndex,
   check,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
@@ -151,7 +152,7 @@ export const freeTrialUses = pgTable(
   "free_trial_uses",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    ipHash: varchar("ip_hash", { length: 64 }).notNull(),
+    ipHash: varchar("ip_hash", { length: 64 }).notNull().unique(),
     usesCount: integer("uses_count").notNull().default(0),
     firstUseAt: timestamp("first_use_at", { withTimezone: true })
       .notNull()
@@ -161,6 +162,6 @@ export const freeTrialUses = pgTable(
       .defaultNow(),
   },
   (table) => [
-    index("idx_free_trial_ip").on(table.ipHash),
+    uniqueIndex("idx_free_trial_ip").on(table.ipHash),
   ]
 );
