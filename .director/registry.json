@@ -528,10 +528,66 @@
       "phase": "B",
       "notes": "PRJ-003 Phase B COMPLETE. Commit 5d3ae00 (470 ins, 10 files). 8/8 checks PASS. Fast-forward merged. Advisor methodology validated — bottleneck analysis, gap analysis, 2 proposed items (BL-032, BL-033), research doc. Sessions killed, worktree removed."
     }
+    ,
+    {
+      "id": "poc01",
+      "name": "Real-ESRGAN Container + Cloud Run Benchmark",
+      "brief": ".cpo/briefs/poc-01-esrgan-container.md",
+      "branch": "poc/esrgan-container",
+      "worktree": "/tmp/esrgan-container",
+      "tmux_supervisor": "sup-esrgan-container",
+      "tmux_executor": "exec-esrgan-container",
+      "status": "complete",
+      "started": "2026-03-29T10:26:00",
+      "completed": "2026-03-29T10:56:00",
+      "stall_count": 0,
+      "last_check": "2026-03-29T10:56:00",
+      "last_output_hash": null,
+      "depends_on": [],
+      "phase": 1,
+      "notes": "COMPLETE. PR #5 merged. GO — cost $0.001-$0.009/image, processing 10-75s CPU. Benchmark at poc/benchmark-results.md."
+    },
+    {
+      "id": "poc02",
+      "name": "Real Photo Validation + GCP Cost Measurement",
+      "brief": ".cpo/briefs/poc-02-real-photos-cost-data.md",
+      "branch": "poc/real-photo-validation",
+      "worktree": "/tmp/real-photo-validation",
+      "tmux_supervisor": "sup-real-photo-validation",
+      "tmux_executor": "exec-real-photo-validation",
+      "status": "complete",
+      "started": "2026-03-29T11:06:00",
+      "completed": "2026-03-29T11:30:00",
+      "stall_count": 0,
+      "last_check": "2026-03-29T11:30:00",
+      "last_output_hash": null,
+      "depends_on": ["poc01"],
+      "phase": 1,
+      "notes": "COMPLETE. PR #6 merged. Real photos: <=1024px OK ($0.001-0.005), 1920px+ OOM/fail. Formula-based cost via X-Processing-Time-Ms header. MVP cap at 1024px."
+    }
+    ,
+    {
+      "id": "beta02",
+      "name": "Production Inference Service",
+      "brief": ".cpo/briefs/beta-02-inference-prod.md",
+      "branch": "feature/inference-prod",
+      "worktree": "/tmp/inference-prod",
+      "tmux_supervisor": "sup-inference-prod",
+      "tmux_executor": "exec-inference-prod",
+      "status": "complete",
+      "started": "2026-03-29T12:42:00",
+      "completed": "2026-03-29T13:10:00",
+      "stall_count": 0,
+      "last_check": "2026-03-29T13:10:00",
+      "last_output_hash": null,
+      "depends_on": [],
+      "phase": "beta",
+      "notes": "COMPLETE. PR #7 merged. Production inference service: WebP output, 1024px validation, 2x/4x upscale, async timeout, structured errors."
+    }
   ],
   "max_parallel": 2,
   "check_interval_minutes": 15,
-  "director_cron_id": "fdb3a9af",
+  "director_cron_id": null,
   "build_slot": null,
   "runtime_slot": null
 }

@@ -1,8 +1,11 @@
-# [PROJECT_NAME] Session Notes
+# Honest Image Tools — Session Notes
+
+## Framework Version
+2.0.0
 
 ## CPO Role
 
-The CPO (Chief Project Orchestrator) for this project operates as **[DISPLAY_TITLE]**. "CPO" is the system handle used in all commands, paths, and configs. The display title reflects this project's domain.
+The CPO (Chief Project Orchestrator) for this project operates as **Chief Product Owner**. "CPO" is the system handle used in all commands, paths, and configs. The display title reflects this project's domain.
 
 ## Telegram Comms
 

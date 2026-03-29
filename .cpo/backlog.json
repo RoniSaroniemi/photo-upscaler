@@ -1,0 +1,30 @@
+{
+  "items": [
+    {
+      "id": "BL-001",
+      "title": "High-resolution support (1920px+) via GPU instances",
+      "priority": "P3",
+      "status": "backlog",
+      "source": "ceo",
+      "category": "feature",
+      "stage": "production",
+      "created": "2026-03-29",
+      "notes": "CEO directive: not MVP or Beta. Production-stage track. Requires Cloud Run L4 GPU instances (~$0.002/image, 3-8s). L4 GA in europe-west1, asia-southeast1. us-central1 invitation-only.",
+      "depends_on": [],
+      "updated": "2026-03-29"
+    },
+    {
+      "id": "BL-002",
+      "title": "2x upscale option (in addition to 4x)",
+      "priority": "P2",
+      "status": "backlog",
+      "source": "ceo",
+      "category": "feature",
+      "stage": "beta",
+      "created": "2026-03-29",
+      "notes": "CEO approved adding 2x option. Faster processing, lower cost. The realesr-general-x4v3 model supports outscale parameter 2 or 4. App already accepts scale query param.",
+      "depends_on": [],
+      "updated": "2026-03-29"
+    }
+  ]
+}
