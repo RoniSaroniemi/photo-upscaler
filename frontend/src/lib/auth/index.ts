@@ -1,32 +1,23 @@
 import { cookies } from "next/headers";
+import { verifyJwt } from "@/lib/auth/jwt";
 
 export interface AuthUser {
   id: string;
   email: string;
 }
 
-/**
- * Placeholder auth utility — returns a mock user for development.
- * Replace with real session/token verification when auth is implemented.
- */
 export async function getAuthUser(): Promise<AuthUser | null> {
   const cookieStore = await cookies();
-  const sessionUserId = cookieStore.get("session_user_id")?.value;
+  const sessionToken = cookieStore.get("session")?.value;
 
-  if (sessionUserId) {
-    return {
-      id: sessionUserId,
-      email: "user@example.com",
-    };
-  }
-
-  // Mock user for development — remove when real auth is wired up
-  const mockUserId = process.env.MOCK_USER_ID;
-  if (mockUserId) {
-    return {
-      id: mockUserId,
-      email: "dev@example.com",
-    };
+  if (sessionToken) {
+    const payload = await verifyJwt(sessionToken);
+    if (payload) {
+      return {
+        id: payload.sub,
+        email: payload.email,
+      };
+    }
   }
 
   return null;
