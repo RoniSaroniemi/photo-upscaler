@@ -65,7 +65,7 @@ export const balances = pgTable(
       .references(() => users.id),
     amountMicrodollars: bigint("amount_microdollars", { mode: "bigint" })
       .notNull()
-      .default(BigInt(0)),
+      .default(sql`0`),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -129,7 +129,7 @@ export const jobs = pgTable(
     }),
     platformFeeMicrodollars: bigint("platform_fee_microdollars", {
       mode: "bigint",
-    }).default(BigInt(5000)),
+    }).default(sql`5000`),
     totalCostMicrodollars: bigint("total_cost_microdollars", {
       mode: "bigint",
     }),
