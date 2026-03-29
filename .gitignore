@@ -27,6 +27,11 @@ tmp-media/
 .agent-comms/telegram.json
 config/session-manifest.json
 
+# Environment variables (secrets)
+.env
+.env.*
+!.env.example
+
 # Local settings
 .claude/settings.local.json
 .claude/scheduled_tasks.lock

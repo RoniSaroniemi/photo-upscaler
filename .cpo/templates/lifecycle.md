@@ -101,6 +101,7 @@ Feature code, UI beyond wireframes, auth/payment integration
 ### Core Build
 - [ ] Critical-path features identified (the minimum that demonstrates the product)
       → Write briefs ONLY for these. Nothing else.
+- [ ] If 3+ briefs: **create a project envelope** before dispatching (brief dependencies, integration plan, E2E test)
 - [ ] Built with production-quality logic (not throwaway like POC)
 - [ ] Built on the architecture from Stage 2 (expandable to beta and production)
 
@@ -133,6 +134,11 @@ Auth, payments, deployment to production, performance optimization
 - [ ] Complete v1 feature list defined (must-have vs nice-to-have)
       → Use `--role planning --preset standard` to structure briefs
 - [ ] Which pillars activate at Beta? (check Pillar table below)
+- [ ] **Project envelope created** (`.cpo/projects/<project>/envelope.md`) wrapping all briefs:
+      → Brief dependency map (which briefs depend on which)
+      → Integration test plan (how to verify briefs work together)
+      → E2E test scenario (full user flow after all briefs merge)
+      → When 3+ briefs exist, an envelope is MANDATORY. Do not dispatch briefs without one.
 
 ### Design
 - [ ] User experience direction chosen (2-3 visual approaches → pick one)

@@ -5,28 +5,50 @@ import Link from "next/link";
 
 export default function AccountPage() {
   const [balance, setBalance] = useState<string | null>(null);
-
+  const [email, setEmail] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchBalance() {
+    async function fetchAccount() {
       try {
-        const res = await fetch("/api/balance");
-        if (res.ok) {
-          const data = await res.json();
+        // Check auth
+        const balanceRes = await fetch("/api/balance");
+        if (balanceRes.status === 401) {
+          window.location.href = "/auth/login";
+          return;
+        }
+        if (balanceRes.ok) {
+          const data = await balanceRes.json();
           setBalance(data.formatted);
+          setEmail(data.email ?? null);
         }
       } catch {
-        // Balance fetch failed silently
+        // Fetch failed silently
+      } finally {
+        setLoading(false);
       }
     }
-    fetchBalance();
+    fetchAccount();
 
     const params = new URLSearchParams(window.location.search);
     if (params.get("deposit") === "success") {
       setMessage("Deposit successful! Your balance has been updated.");
     }
   }, []);
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/auth/login";
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto p-6">
@@ -38,17 +60,31 @@ export default function AccountPage() {
         </div>
       )}
 
+      {email && (
+        <p className="text-sm text-gray-500 mb-4">
+          Signed in as <strong>{email}</strong>
+        </p>
+      )}
+
       <div className="border rounded p-4 mb-4">
         <p className="text-sm text-gray-500">Balance</p>
-        <p className="text-3xl font-bold">{balance ?? "..."}</p>
+        <p className="text-3xl font-bold">{balance ?? "$0.00"}</p>
       </div>
 
-      <Link
-        href="/account/add-funds"
-        className="inline-block py-2 px-4 rounded bg-blue-600 text-white font-medium hover:bg-blue-700"
-      >
-        Add Funds
-      </Link>
+      <div className="flex gap-3">
+        <Link
+          href="/account/add-funds"
+          className="inline-block py-2 px-4 rounded bg-blue-600 text-white font-medium hover:bg-blue-700"
+        >
+          Add Funds
+        </Link>
+        <button
+          onClick={handleLogout}
+          className="py-2 px-4 rounded border border-gray-300 text-gray-600 hover:bg-gray-100"
+        >
+          Log Out
+        </button>
+      </div>
     </div>
   );
 }

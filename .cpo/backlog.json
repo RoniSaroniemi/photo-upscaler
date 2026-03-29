@@ -25,6 +25,19 @@
       "notes": "CEO approved adding 2x option. Faster processing, lower cost. The realesr-general-x4v3 model supports outscale parameter 2 or 4. App already accepts scale query param.",
       "depends_on": [],
       "updated": "2026-03-29"
+    },
+    {
+      "id": "BL-003",
+      "title": "Batch processing — upload and upscale multiple images",
+      "priority": "P3",
+      "status": "backlog",
+      "source": "ceo",
+      "category": "feature",
+      "stage": "post-production",
+      "created": "2026-03-29",
+      "notes": "CEO: post-production improvement. Batch upload, parallel processing, zip download. Needs parent batch record linking multiple jobs. GCS bucket already supports multiple objects with 24h auto-deletion.",
+      "depends_on": [],
+      "updated": "2026-03-29"
     }
   ]
 }
