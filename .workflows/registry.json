@@ -1,0 +1,21 @@
+{
+  "workflows": [
+    {
+      "id": "security-audit",
+      "enabled": true,
+      "schedule": "0 3 * * 1",
+      "stats": {
+        "total_runs": 0,
+        "successes": 0,
+        "failures": 0,
+        "escalations": 0
+      },
+      "last_run": null,
+      "timezone": "UTC",
+      "scheduler": "launchd",
+      "scheduler_id": "com.claude-orchestration.workflow.security-audit"
+    }
+  ],
+  "scheduler_type": "launchd",
+  "version": 1
+}
