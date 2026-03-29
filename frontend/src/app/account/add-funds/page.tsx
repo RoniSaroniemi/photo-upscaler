@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 
 const PRESETS = [
-  { label: "$5", cents: 500 },
-  { label: "$10", cents: 1000 },
-  { label: "$25", cents: 2500 },
+  { label: "$5", cents: 500, upscales: "~625 upscales" },
+  { label: "$10", cents: 1000, upscales: "~1,250 upscales" },
+  { label: "$25", cents: 2500, upscales: "~3,125 upscales" },
 ];
 
 export default function AddFundsPage() {
@@ -19,6 +20,10 @@ export default function AddFundsPage() {
   const fetchBalance = useCallback(async () => {
     try {
       const res = await fetch("/api/balance");
+      if (res.status === 401) {
+        window.location.href = "/auth/login";
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setBalance(data.formatted);
@@ -72,6 +77,13 @@ export default function AddFundsPage() {
 
   return (
     <div className="max-w-md mx-auto p-6">
+      <Link
+        href="/account"
+        className="text-sm text-blue-600 hover:text-blue-700 mb-4 inline-block"
+      >
+        &larr; Back to Account
+      </Link>
+
       <h1 className="text-2xl font-bold mb-6">Add Funds</h1>
 
       {balance !== null && (
@@ -82,7 +94,7 @@ export default function AddFundsPage() {
 
       {message && (
         <div
-          className={`p-3 rounded mb-6 ${
+          className={`p-3 rounded-lg mb-6 text-sm ${
             message.type === "success"
               ? "bg-green-100 text-green-800"
               : "bg-red-100 text-red-800"
@@ -92,21 +104,23 @@ export default function AddFundsPage() {
         </div>
       )}
 
-      <div className="flex gap-4">
-        {PRESETS.map(({ label, cents }) => (
+      <div className="space-y-3">
+        {PRESETS.map(({ label, cents, upscales }) => (
           <button
             key={cents}
             onClick={() => handleAddFunds(cents)}
             disabled={loading !== null}
-            className="flex-1 py-3 px-4 rounded bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-between py-4 px-5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading === cents ? "..." : label}
+            <span className="text-lg">{loading === cents ? "..." : label}</span>
+            <span className="text-sm text-blue-200">{upscales}</span>
           </button>
         ))}
       </div>
 
-      <p className="text-sm text-gray-500 mt-4">
-        You&apos;ll be redirected to Stripe to complete your payment.
+      <p className="text-sm text-zinc-500 mt-4">
+        Minimum deposit: $5.00. You&apos;ll be redirected to Stripe to complete
+        your payment.
       </p>
     </div>
   );
