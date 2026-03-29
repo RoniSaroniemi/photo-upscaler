@@ -14,6 +14,11 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Stripe webhook — called by Stripe servers, no session cookie.
+  if (path === "/api/balance/webhook" && request.method === "POST") {
+    return NextResponse.next();
+  }
+
   const isProtectedApi = protectedApiPrefixes.some((p) =>
     path.startsWith(p)
   );

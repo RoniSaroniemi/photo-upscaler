@@ -189,13 +189,14 @@ export async function POST(request: Request) {
 
     if (isTrial) {
       // Inference + upload succeeded — NOW atomically claim the trial slot.
-      // Race conditions giving 3 uses instead of 2 are acceptable for Beta.
+      // The WHERE guard prevents incrementing past the limit under concurrency.
       const claimed = await rawSql`
         INSERT INTO free_trial_uses (id, ip_hash, uses_count, first_use_at, last_use_at)
         VALUES (gen_random_uuid(), ${trialIpHash}, 1, now(), now())
         ON CONFLICT (ip_hash) DO UPDATE
           SET uses_count = free_trial_uses.uses_count + 1,
               last_use_at = now()
+          WHERE free_trial_uses.uses_count < ${FREE_TRIAL_LIMIT}
         RETURNING uses_count
       `;
 
