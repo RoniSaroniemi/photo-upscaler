@@ -14,6 +14,11 @@ class Settings:
 
     ALLOWED_EXTENSIONS: set = {".jpg", ".jpeg", ".png", ".webp"}
 
+    # Stripe
+    STRIPE_SECRET_KEY: str = os.getenv("STRIPE_SECRET_KEY", "")
+    STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
     def __init__(self):
         Path(self.TEMP_DIR).mkdir(parents=True, exist_ok=True)
 

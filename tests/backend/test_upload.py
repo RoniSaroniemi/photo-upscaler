@@ -4,6 +4,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from PIL import Image
 
+from app.database import add_balance
 from app.main import app
 
 
@@ -15,13 +16,44 @@ def create_test_image(width=100, height=100, fmt="PNG") -> bytes:
     return buf.read()
 
 
+async def create_funded_session(client: AsyncClient, balance_cents: int = 1000) -> str:
+    """Create an authenticated user with sufficient balance."""
+    login_resp = await client.post(
+        "/auth/login",
+        json={"email": "uploader@example.com"},
+    )
+    token = login_resp.json()["token"]
+    verify_resp = await client.post("/auth/verify", json={"token": token})
+    session_cookie = verify_resp.cookies.get("session_id")
+
+    # Get user ID and add balance
+    me_resp = await client.get("/auth/me", cookies={"session_id": session_cookie})
+    user_id = me_resp.json()["user"]["id"]
+    add_balance(user_id, balance_cents, "Test funding")
+
+    return session_cookie
+
+
 @pytest.mark.anyio
-async def test_upload_accepts_png():
+async def test_upload_requires_auth():
     image_bytes = create_test_image(fmt="PNG")
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/upload",
             files={"file": ("test.png", image_bytes, "image/png")},
+        )
+    assert response.status_code == 401
+
+
+@pytest.mark.anyio
+async def test_upload_accepts_png():
+    image_bytes = create_test_image(fmt="PNG")
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        session = await create_funded_session(client)
+        response = await client.post(
+            "/upload",
+            files={"file": ("test.png", image_bytes, "image/png")},
+            cookies={"session_id": session},
         )
     assert response.status_code == 200
     data = response.json()
@@ -33,9 +65,11 @@ async def test_upload_accepts_png():
 async def test_upload_accepts_jpeg():
     image_bytes = create_test_image(fmt="JPEG")
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        session = await create_funded_session(client)
         response = await client.post(
             "/upload",
             files={"file": ("test.jpg", image_bytes, "image/jpeg")},
+            cookies={"session_id": session},
         )
     assert response.status_code == 200
     data = response.json()
@@ -45,20 +79,54 @@ async def test_upload_accepts_jpeg():
 @pytest.mark.anyio
 async def test_upload_rejects_unsupported_type():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        session = await create_funded_session(client)
         response = await client.post(
             "/upload",
             files={"file": ("test.txt", b"not an image", "text/plain")},
+            cookies={"session_id": session},
         )
     assert response.status_code == 400
+
+
+@pytest.mark.anyio
+async def test_upload_rejects_insufficient_balance():
+    image_bytes = create_test_image(fmt="PNG")
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        session = await create_funded_session(client, balance_cents=0)
+        response = await client.post(
+            "/upload",
+            files={"file": ("test.png", image_bytes, "image/png")},
+            cookies={"session_id": session},
+        )
+    assert response.status_code == 402
+    assert "Insufficient balance" in response.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_upload_deducts_balance():
+    image_bytes = create_test_image(fmt="PNG")
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        session = await create_funded_session(client, balance_cents=1000)
+        response = await client.post(
+            "/upload",
+            files={"file": ("test.png", image_bytes, "image/png")},
+            cookies={"session_id": session},
+        )
+        data = response.json()
+        if data["status"] == "completed":
+            assert data["cost_cents"] == 5  # $0.02 + $0.03
+            assert data["new_balance_cents"] == 995  # 1000 - 5
 
 
 @pytest.mark.anyio
 async def test_status_returns_job():
     image_bytes = create_test_image()
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        session = await create_funded_session(client)
         upload_resp = await client.post(
             "/upload",
             files={"file": ("test.png", image_bytes, "image/png")},
+            cookies={"session_id": session},
         )
         job_id = upload_resp.json()["job_id"]
         status_resp = await client.get(f"/status/{job_id}")
@@ -77,9 +145,11 @@ async def test_status_404_for_unknown_job():
 async def test_download_completed_job():
     image_bytes = create_test_image()
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        session = await create_funded_session(client)
         upload_resp = await client.post(
             "/upload",
             files={"file": ("test.png", image_bytes, "image/png")},
+            cookies={"session_id": session},
         )
         data = upload_resp.json()
         if data["status"] == "completed":
