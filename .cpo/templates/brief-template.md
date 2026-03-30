@@ -228,6 +228,20 @@ echo "Evidence saved to $EVIDENCE_DIR/"
 
 ---
 
+## 12. Quality Rubric (DIRECTOR: evaluate after reviewing evidence)
+
+*The director scores each criterion after independently reviewing the evidence files. This is not a self-assessment — the director evaluates what was delivered, not what was claimed. Add 1-2 brief-specific criteria alongside the default "Evidence convincingness."*
+
+| Criteria | Poor (1) | Acceptable (2) | Good (3) | Excellent (4) | Score |
+|----------|----------|----------------|----------|---------------|-------|
+| Evidence convincingness | Claims without proof | Evidence exists but surface-level | Evidence demonstrates real functionality with real data — a skeptic would accept it | Evidence leaves no room for doubt — real data, real screenshots, thorough analysis | ___ |
+| [Brief-specific criterion — e.g., "Visual quality", "Error specificity", "API correctness"] | [What poor looks like] | [What acceptable looks like] | [What good looks like] | [What excellent looks like] | ___ |
+
+**Minimum to pass: all criteria ≥ 2, average ≥ 2.5**
+**DIRECTOR: Fill scores after reviewing evidence. If below minimum, return to supervisor with specific feedback on what to improve.**
+
+---
+
 ## Convention: PR-Based Completion
 
 **Supervisors create PRs on completion — they do NOT merge directly.** When all acceptance criteria are met and all evidence is collected:

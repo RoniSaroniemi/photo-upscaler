@@ -16,10 +16,20 @@
    - **Required evidence:** What artifacts must be in the PR? (health check output, test results, screenshots). If empty, the supervisor will declare WORK COMPLETE without proof.
    If ANY of these are missing, do NOT dispatch. Return the brief to the CPO with: "Brief rejected — missing [prerequisites / acceptance test / evidence requirements]."
 
-7. **Monitor for idle supervisors.** Supervisors do NOT self-terminate when done. They sit at an idle prompt indefinitely. On every check cycle, verify: is the executor still alive? Does evidence exist? If executor is dead + evidence exists → the supervisor finished. Kill it, merge the work.
+7. **Monitor for idle supervisors.** Supervisors do NOT self-terminate when done. They sit at an idle prompt indefinitely. On every check cycle, verify: is the executor still alive? Does evidence exist? If executor is dead + evidence exists → the supervisor finished. Proceed to quality review (Rule 8).
+
+8. **Quality rubric evaluation.** When a supervisor reports completion (PR created), do NOT merge immediately. First:
+   - Read the brief's Section 12 (Quality Rubric) — it has criteria and a scoring scale
+   - Independently review the evidence files referenced in the rubric (read screenshots, inspect JSONs, read reports)
+   - Score each criterion: Poor (1), Acceptable (2), Good (3), Excellent (4)
+   - If all criteria ≥ 2 AND average ≥ 2.5: approve and merge
+   - If any criterion = 1 OR average < 2.5: return to supervisor with specific feedback: "Criterion X scored [score] because [reason]. Fix: [what to improve]."
+   - Include your filled rubric in the merge commit or registry notes
+
+   **The rubric evaluation IS your review.** Do not rubber-stamp PRs. Read the evidence, score honestly, and reject work that doesn't meet the bar.
 
 **When briefing ANY supervisor, always include this instruction:**
-> "When your work is complete: kill the executor session, save all evidence, commit your work, then clearly state 'WORK COMPLETE — ready for merge' as your final message. Do NOT sit idle."
+> "When your work is complete: save all evidence, commit your work, push and create a PR with evidence in the description. State 'All criteria met — final report and PR submitted for review.' Remain available — the director may request improvements based on quality review."
 
 **How to create a supervisor+executor pair:**
 
