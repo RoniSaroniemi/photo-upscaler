@@ -10,23 +10,19 @@ export async function deductBalance(
   jobId: string,
   description: string
 ): Promise<boolean> {
-  // Atomic: UPDATE balance only if sufficient funds, then INSERT transaction.
-  // If the UPDATE affects 0 rows, insufficient funds.
-  const [updateResult] = await sql.transaction([
-    sql`UPDATE balances
-        SET amount_microdollars = amount_microdollars - ${amountMicrodollars.toString()},
-            updated_at = now()
-        WHERE user_id = ${userId}
-          AND amount_microdollars >= ${amountMicrodollars.toString()}`,
-    sql`INSERT INTO transactions (user_id, type, amount_microdollars, job_id, description)
-        SELECT ${userId}, 'charge', ${amountMicrodollars.toString()}, ${jobId}, ${description}
-        WHERE EXISTS (
-          SELECT 1 FROM balances
-          WHERE user_id = ${userId}
-            AND amount_microdollars >= 0
-        )`,
-  ]);
-
-  // neon returns rowCount on UPDATE results
-  return (updateResult as { rowCount?: number }).rowCount === 1;
+  const result = await sql`
+    WITH deduction AS (
+      UPDATE balances
+      SET amount_microdollars = amount_microdollars - ${amountMicrodollars.toString()},
+          updated_at = now()
+      WHERE user_id = ${userId}
+        AND amount_microdollars >= ${amountMicrodollars.toString()}
+      RETURNING user_id
+    )
+    INSERT INTO transactions (user_id, type, amount_microdollars, job_id, description)
+    SELECT ${userId}, 'charge', ${amountMicrodollars.toString()}, ${jobId}, ${description}
+    FROM deduction
+    RETURNING user_id;
+  `;
+  return result.length > 0;
 }
