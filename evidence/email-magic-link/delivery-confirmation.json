@@ -1,16 +1,15 @@
 {
-  "email_id": "23915cd6-5a97-46c9-bef8-8e0d9084efab",
-  "status": "sent",
+  "email_id": "3c00c593-1458-47b4-b584-710c2112e06b",
   "to": "roni.saroniemi@foxie.ai",
   "subject": "Sign in to Honest Image Tools",
-  "sent_at": "2026-03-30T18:35:48.459Z",
-  "resend_response_headers": {
-    "ratelimit_remaining": "4",
-    "daily_quota": "4",
-    "monthly_quota": "5"
-  },
-  "resend_error": null,
-  "delivery_method": "Resend API (real send via POST /api/auth/send-magic-link)",
-  "api_key_note": "Resend API key is send-only; cannot query delivery status. Send confirmed by 200 response with email ID.",
-  "verification_result": "Token successfully verified \u2014 session cookie issued, redirect to /account"
+  "resend_status": "sent",
+  "timestamp": "2026-03-30T19:40:57.006Z",
+  "headers": {
+    "ratelimit-limit": "5",
+    "ratelimit-policy": "5;w=1",
+    "ratelimit-remaining": "4",
+    "ratelimit-reset": "1",
+    "x-resend-daily-quota": "5",
+    "x-resend-monthly-quota": "6"
+  }
 }
