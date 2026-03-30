@@ -25,37 +25,7 @@ function hashIp(ip: string): string {
 }
 
 export async function POST(request: Request) {
-  // Try auth — don't throw, check trial if no user
-  const user = await getAuthUser();
-
-  let isTrial = false;
-  let trialNewCount = 0;
-
-  let trialIpHash: string | null = null;
-
-  if (!user) {
-    // Check trial eligibility (SELECT only — don't increment yet).
-    // The count is incremented AFTER inference + GCS upload succeed,
-    // so a failed request doesn't consume a trial slot.
-    const ip = getClientIp(request);
-    trialIpHash = hashIp(ip);
-
-    const existing = await rawSql`
-      SELECT uses_count FROM free_trial_uses
-      WHERE ip_hash = ${trialIpHash}
-    `;
-
-    const currentCount = existing.length > 0 ? (existing[0].uses_count as number) : 0;
-
-    if (currentCount >= FREE_TRIAL_LIMIT) {
-      return Response.json(
-        { error: "Free trial exhausted. Sign in and add funds." },
-        { status: 401 }
-      );
-    }
-
-    isTrial = true;
-  }
+  // --- Input validation first (no DB calls) ---
 
   // Parse multipart form data
   let formData: FormData;
@@ -134,28 +104,76 @@ export async function POST(request: Request) {
     );
   }
 
+  // --- Auth & DB checks (after input validation) ---
+
+  // Try auth — don't throw, check trial if no user
+  const user = await getAuthUser();
+
+  let isTrial = false;
+  let trialNewCount = 0;
+
+  let trialIpHash: string | null = null;
+
+  if (!user) {
+    // Check trial eligibility (SELECT only — don't increment yet).
+    // The count is incremented AFTER inference + GCS upload succeed,
+    // so a failed request doesn't consume a trial slot.
+    const ip = getClientIp(request);
+    trialIpHash = hashIp(ip);
+
+    try {
+      const existing = await rawSql`
+        SELECT uses_count FROM free_trial_uses
+        WHERE ip_hash = ${trialIpHash}
+      `;
+
+      const currentCount = existing.length > 0 ? (existing[0].uses_count as number) : 0;
+
+      if (currentCount >= FREE_TRIAL_LIMIT) {
+        return Response.json(
+          { error: "Free trial exhausted. Sign in and add funds." },
+          { status: 401 }
+        );
+      }
+    } catch {
+      return Response.json(
+        { error: "Service temporarily unavailable" },
+        { status: 503 }
+      );
+    }
+
+    isTrial = true;
+  }
+
   // Estimate cost
   const estimated = estimateCost(inputWidth, inputHeight);
 
   // For authenticated users: check balance
   if (!isTrial && user) {
-    const balanceResult = await db
-      .select()
-      .from(balances)
-      .where(eq(balances.userId, user.id))
-      .limit(1);
+    try {
+      const balanceResult = await db
+        .select()
+        .from(balances)
+        .where(eq(balances.userId, user.id))
+        .limit(1);
 
-    const balanceMicrodollars =
-      balanceResult[0]?.amountMicrodollars ?? BigInt(0);
+      const balanceMicrodollars =
+        balanceResult[0]?.amountMicrodollars ?? BigInt(0);
 
-    if (balanceMicrodollars < BigInt(estimated.total_microdollars)) {
+      if (balanceMicrodollars < BigInt(estimated.total_microdollars)) {
+        return Response.json(
+          {
+            error: "Insufficient balance",
+            balance_microdollars: balanceMicrodollars.toString(),
+            required_microdollars: estimated.total_microdollars.toString(),
+          },
+          { status: 402 }
+        );
+      }
+    } catch {
       return Response.json(
-        {
-          error: "Insufficient balance",
-          balance_microdollars: balanceMicrodollars.toString(),
-          required_microdollars: estimated.total_microdollars.toString(),
-        },
-        { status: 402 }
+        { error: "Service temporarily unavailable" },
+        { status: 503 }
       );
     }
   }
@@ -163,17 +181,24 @@ export async function POST(request: Request) {
   // Create pending job only for authenticated users
   let jobId: string | null = null;
   if (user) {
-    const [job] = await db
-      .insert(jobs)
-      .values({
-        userId: user.id,
-        status: "pending",
-        inputWidth,
-        inputHeight,
-        inputFileSize: imageBuffer.length,
-      })
-      .returning({ id: jobs.id });
-    jobId = job.id;
+    try {
+      const [job] = await db
+        .insert(jobs)
+        .values({
+          userId: user.id,
+          status: "pending",
+          inputWidth,
+          inputHeight,
+          inputFileSize: imageBuffer.length,
+        })
+        .returning({ id: jobs.id });
+      jobId = job.id;
+    } catch {
+      return Response.json(
+        { error: "Service temporarily unavailable" },
+        { status: 503 }
+      );
+    }
   }
 
   // Call inference service

@@ -1,0 +1,20 @@
+=== Error Handling Smoke Test ===
+Base URL: http://localhost:3001
+
+PASS  1. Non-image upload  (HTTP 400)
+PASS  2. Empty upload  (HTTP 400)
+PASS  3. Invalid token  (HTTP 503)
+PASS  4. Expired token  (HTTP 503)
+PASS  5. Nonexistent endpoint  (HTTP 404)
+PASS  6. Insufficient balance  (HTTP 503)
+
+=== Results ===
+  PASS  1. Non-image upload  HTTP 400
+  PASS  2. Empty upload  HTTP 400
+  PASS  3. Invalid token  HTTP 503
+  PASS  4. Expired token  HTTP 503
+  PASS  5. Nonexistent endpoint  HTTP 404
+  PASS  6. Insufficient balance  HTTP 503
+
+Passed: 6 / 6
+ALL TESTS PASSED

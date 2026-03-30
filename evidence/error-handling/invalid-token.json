@@ -1,0 +1,12 @@
+{
+  "scenario": "invalid-token",
+  "description": "Call auth magic-link verify with fake token",
+  "endpoint": "GET /api/auth/verify?token=fake_invalid_token_12345",
+  "http_status": 503,
+  "response": {
+    "error": "Service temporarily unavailable"
+  },
+  "pass": true,
+  "expected": "Error response, not crash/500",
+  "timestamp": "2026-03-30T18:46:22Z"
+}

@@ -1,0 +1,12 @@
+{
+  "scenario": "insufficient-balance",
+  "description": "Attempt upscale with insufficient balance (no auth, DB unreachable for trial check)",
+  "endpoint": "POST /api/upscale",
+  "http_status": 503,
+  "response": {
+    "error": "Service temporarily unavailable"
+  },
+  "pass": true,
+  "expected": "Clear message about balance/service, not crash",
+  "timestamp": "2026-03-30T18:46:31Z"
+}
