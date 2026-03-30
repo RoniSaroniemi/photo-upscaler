@@ -1,12 +1,8 @@
 {
-  "scenario": "expired-token",
-  "description": "Call auth magic-link verify with expired token",
-  "endpoint": "GET /api/auth/verify?token=...expired...",
-  "http_status": 503,
-  "response": {
-    "error": "Service temporarily unavailable"
-  },
-  "pass": true,
-  "expected": "Expired/invalid message, not crash",
-  "timestamp": "2026-03-30T18:46:25Z"
+  "scenario": "Expired magic link token",
+  "endpoint": "GET /api/auth/verify?token=0000000000000000000000000000000000000000000000expired",
+  "http_status": 400,
+  "response_body": {"error":"Invalid or expired token"},
+  "pass_fail": "PASS",
+  "timestamp": "2026-03-30T19:44:27Z"
 }

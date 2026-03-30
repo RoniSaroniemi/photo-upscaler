@@ -1,12 +1,8 @@
 {
-  "scenario": "non-image-upload",
-  "description": "POST a .txt file to upload endpoint",
+  "scenario": "Non-image upload",
   "endpoint": "POST /api/upscale",
   "http_status": 400,
-  "response": {
-    "error": "File must be an image"
-  },
-  "pass": true,
-  "expected": "4xx with clear error message",
-  "timestamp": "2026-03-30T18:46:16Z"
+  "response_body": {"error":"File must be an image"},
+  "pass_fail": "PASS",
+  "timestamp": "2026-03-30T19:44:20Z"
 }

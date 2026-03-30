@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     record = await verifyToken(token);
   } catch {
     return NextResponse.json(
-      { error: "Service temporarily unavailable" },
+      { error: "Unable to verify sign-in link — please try again or request a new link" },
       { status: 503 }
     );
   }
@@ -75,7 +75,7 @@ export async function GET(request: Request) {
     return response;
   } catch {
     return NextResponse.json(
-      { error: "Service temporarily unavailable" },
+      { error: "Unable to complete sign-in — please try again" },
       { status: 503 }
     );
   }

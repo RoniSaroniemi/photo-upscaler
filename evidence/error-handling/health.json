@@ -1,5 +1,8 @@
 {
-    "status": "ok",
-    "version": "0.1.0",
-    "db": "error"
+  "scenario": "Health check",
+  "endpoint": "GET /api/health",
+  "http_status": 200,
+  "response_body": {"status":"ok","version":"0.1.0","db":"connected"},
+  "pass_fail": "PASS",
+  "timestamp": "2026-03-30T19:44:18Z"
 }
