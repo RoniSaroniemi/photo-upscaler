@@ -27,7 +27,7 @@ export async function generateSignedUrl(gcsKey: string): Promise<string> {
   const [url] = await file.getSignedUrl({
     version: "v4",
     action: "read",
-    expires: Date.now() + 60 * 60 * 1000, // 1 hour
+    expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
   });
 
   return url;
