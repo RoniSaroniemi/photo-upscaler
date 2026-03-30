@@ -2,7 +2,8 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// In-memory store for last sent email — only populated when TEST_MODE=true
+const DEFAULT_FROM = "Honest Image Tools <onboarding@resend.dev>";
+
 interface CapturedEmail {
   to: string;
   subject: string;
@@ -22,6 +23,16 @@ export async function sendMagicLinkEmail(email: string, token: string) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const magicLink = `${baseUrl}/auth/verify?token=${token}`;
 
+  const fromAddress = process.env.RESEND_FROM_EMAIL || DEFAULT_FROM;
+
+  if (fromAddress.includes("onboarding@resend.dev")) {
+    console.warn(
+      "[auth/email] WARNING: Using Resend sandbox sender (onboarding@resend.dev). " +
+        "Emails will ONLY be delivered to the Resend account owner's verified email. " +
+        "Set RESEND_FROM_EMAIL to a verified domain sender for production use."
+    );
+  }
+
   const subject = "Sign in to Honest Image Tools";
   const html = `
       <h2>Sign in to Honest Image Tools</h2>
@@ -31,22 +42,27 @@ export async function sendMagicLinkEmail(email: string, token: string) {
     `;
 
   const response = await resend.emails.send({
-    from: "Honest Image Tools <onboarding@resend.dev>",
+    from: fromAddress,
     to: email,
     subject,
     html,
   });
 
-  console.log("[auth/email] Resend API response:", JSON.stringify(response));
-
-  if (process.env.TEST_MODE === "true") {
-    lastCapturedEmail = {
-      to: email,
-      subject,
-      html,
-      magicLinkUrl: magicLink,
-      resendResponse: response,
-      timestamp: new Date().toISOString(),
-    };
+  if (response.error) {
+    console.warn(
+      "[auth/email] Resend API error:",
+      JSON.stringify(response.error)
+    );
+  } else {
+    console.log("[auth/email] Resend API response:", JSON.stringify(response));
   }
+
+  lastCapturedEmail = {
+    to: email,
+    subject,
+    html,
+    magicLinkUrl: magicLink,
+    resendResponse: response,
+    timestamp: new Date().toISOString(),
+  };
 }
