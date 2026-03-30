@@ -432,11 +432,11 @@ def launch_pair(args) -> dict:
             f"You are a SUPERVISOR — you DELEGATE, you do NOT implement. "
             f"Your executor is in tmux session '{exc}'. "
             f"FIRST: send the task brief to your executor via tmux send-keys. "
-            f"THEN: monitor the executor's progress, verify its output, "
-            f"and when done: commit, push, create a PR with `gh pr create`, "
-            f"and state 'WORK COMPLETE — PR created, ready for review'. "
+            f"THEN: monitor the executor's progress, verify its output. "
             f"VERIFICATION REQUIRED: {vlevel_str} — {vlevel_desc}. "
-            f"Run the smoke-test script before declaring done."
+            f"Before reporting completion: run the smoke-test script, verify ALL "
+            f"evidence files exist, then state 'All criteria met — final report "
+            f"and PR submitted for review'. Do NOT declare done before evidence exists."
         )
         step_inject_text(sup, prompt, server)
 

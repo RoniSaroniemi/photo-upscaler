@@ -142,11 +142,24 @@ EOF
 ```
 
 **The PR description IS the evidence.** If the evidence section is empty or says "all tests pass" without actual output, the PR should not be merged.
-2. Your final message must be: **WORK COMPLETE — PR created, ready for review**
-3. Self-terminate by running: `tmux kill-session -t $(tmux display-message -p '#S')`
-   This kills the current supervisor session. The executor was already killed by you earlier.
-   There is nothing after this step — the session ends.
 
-> **Note:** If running in a workflow context, the run.sh completion monitor will also kill the session — self-termination is belt-and-suspenders.
+2. **Before declaring anything:** Run the smoke script from Section 7 of the brief (if one exists):
+```bash
+bash scripts/smoke-test-[brief-id].sh
+```
+If it FAILS → fix the code. Do NOT create the PR until it passes.
+If it PASSES → include the output in the PR description.
 
-**Supervisors create PRs on completion — they do NOT merge directly.** The CPO or director then reviews and merges via `gh pr merge`.
+3. **Verify ALL evidence files exist:**
+```bash
+ls evidence/[brief-id]/
+```
+Every file listed in the brief's Evidence Checklist must be present with real content.
+
+4. Your final message must be: **"All criteria met — final report and PR submitted for review"**
+
+> **IMPORTANT:** Do NOT declare completion until the smoke script has passed and all evidence exists. Declaring completion without evidence is the single most common failure mode. If in doubt, run the smoke script one more time.
+
+**After declaring completion, remain available.** The director or CPO may request fixes or additional evidence. Do NOT self-terminate — the director manages session cleanup when satisfied with the evidence.
+
+**Supervisors create PRs on completion — they do NOT merge directly.** The CPO or director then reviews evidence and merges via `gh pr merge`.

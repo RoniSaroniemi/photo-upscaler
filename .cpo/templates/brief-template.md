@@ -105,6 +105,10 @@
 
 ## 7. Acceptance Test Script
 
+**MANDATORY MINIMUM VERIFICATION LEVEL:** [L2 / L3 / L4 — choose one]
+
+*The brief is NOT complete until the smoke script runs and ALL checks at or above the minimum level PASS. Code that compiles but hasn't been run against the smoke script is unfinished work.*
+
 *Each brief MUST produce an executable verification script alongside the code. This script is how ANYONE (a verify agent, the director, CI) can independently confirm the work is done.*
 
 **Script path:** `scripts/smoke-test-[brief-id].sh` (committed to the repo with the PR)
@@ -177,13 +181,26 @@ echo "Evidence saved to $EVIDENCE_DIR/"
 
 *Minimum: health check output + one core flow test. If the brief changes UI, include a Playwright screenshot.*
 
+### Evidence Checklist (ALL must be present before reporting completion)
+
+*List every piece of evidence expected. The work is not done until every item exists.*
+
+- [ ] `scripts/smoke-test-[brief-id].sh` exists and is executable
+- [ ] Smoke script has been RUN (not just written) and output captured
+- [ ] `evidence/[brief-id]/` directory contains all evidence files listed above
+- [ ] Each evidence file has real content (not empty, not placeholder)
+- [ ] [Additional brief-specific evidence item]
+- [ ] [Additional brief-specific evidence item]
+
 ### Acceptance Criteria
+
 - [ ] [Criterion 1]
 - [ ] [Criterion 2]
 - [ ] Build succeeds (Level 1)
 - [ ] App starts and health check passes (Level 2)
 - [ ] Core flow works end-to-end (Level 3 — required for gate-relevant briefs)
-- [ ] All required evidence produced and included in PR
+- [ ] **Smoke script PASSES at the mandatory minimum level specified in Section 7**
+- [ ] **ALL evidence from the Evidence Checklist above is present and verified**
 
 ---
 
@@ -213,12 +230,20 @@ echo "Evidence saved to $EVIDENCE_DIR/"
 
 ## Convention: PR-Based Completion
 
-**Supervisors create PRs on completion — they do NOT merge directly.** When all work is done and verified, the supervisor must:
-1. `git push origin <branch>`
-2. `gh pr create --title "BL-NNN: <title>" --body "..." --base main --head <branch>`
-3. State "WORK COMPLETE — PR created, ready for review"
+**Supervisors create PRs on completion — they do NOT merge directly.** When all acceptance criteria are met and all evidence is collected:
 
-The CPO or director then reviews and merges via `gh pr merge`.
+1. Run the smoke script one final time — confirm PASS
+2. Verify all evidence files exist in `evidence/[brief-id]/`
+3. `git push origin <branch>`
+4. `gh pr create` with the PR body containing:
+   - Smoke script output (PASS/FAIL for each check)
+   - Evidence file listing
+   - Any issues encountered and how they were resolved
+5. State: **"All criteria met — final report and PR submitted for review"**
+
+**Do NOT declare completion before running the smoke script.** Code that compiles but hasn't produced evidence is unfinished work.
+
+The CPO or director then reviews the evidence and merges via `gh pr merge`.
 
 ---
 

@@ -10,7 +10,13 @@
 
 5. **Stage alignment.** Before dispatching any supervisor+executor pair, check `.cpo/lifecycle.md` (if it exists) for the current project stage. Only dispatch work appropriate for that stage. If a brief contains work for a later stage (e.g., auth integration during POC), flag it to the CPO rather than dispatching it. The CPO manages stage transitions — you execute within the current stage.
 
-6. **Monitor for idle supervisors.** Supervisors do NOT self-terminate when done. They sit at an idle prompt indefinitely. On every check cycle, verify: is the executor still alive? Does evidence exist? If executor is dead + evidence exists → the supervisor finished. Kill it, merge the work.
+6. **Brief quality gate.** Before dispatching a brief, validate it has:
+   - **Prerequisites:** What must be true BEFORE the executor starts? (env vars set, services running, credentials available). If prerequisites aren't met, the executor will build code that can't be tested.
+   - **Acceptance test:** A concrete command or scenario that PROVES the brief's deliverables work. Not "acceptance criteria" (checkboxes) — an actual test. Example: "Run `curl -X POST localhost:3000/api/upload -F file=@test.jpg` and verify response contains `download_url`." If the brief has no acceptance test, send it back to the CPO: "This brief has no way to prove it works. Add an acceptance test."
+   - **Required evidence:** What artifacts must be in the PR? (health check output, test results, screenshots). If empty, the supervisor will declare WORK COMPLETE without proof.
+   If ANY of these are missing, do NOT dispatch. Return the brief to the CPO with: "Brief rejected — missing [prerequisites / acceptance test / evidence requirements]."
+
+7. **Monitor for idle supervisors.** Supervisors do NOT self-terminate when done. They sit at an idle prompt indefinitely. On every check cycle, verify: is the executor still alive? Does evidence exist? If executor is dead + evidence exists → the supervisor finished. Kill it, merge the work.
 
 **When briefing ANY supervisor, always include this instruction:**
 > "When your work is complete: kill the executor session, save all evidence, commit your work, then clearly state 'WORK COMPLETE — ready for merge' as your final message. Do NOT sit idle."
