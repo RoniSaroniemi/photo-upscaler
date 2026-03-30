@@ -25,39 +25,7 @@ function hashIp(ip: string): string {
 }
 
 export async function POST(request: Request) {
-  // Try auth — don't throw, check trial if no user
-  const user = await getAuthUser();
-
-  let isTrial = false;
-  let trialNewCount = 0;
-
-  let trialIpHash: string | null = null;
-
-  if (!user) {
-    // Check trial eligibility (SELECT only — don't increment yet).
-    // The count is incremented AFTER inference + GCS upload succeed,
-    // so a failed request doesn't consume a trial slot.
-    const ip = getClientIp(request);
-    trialIpHash = hashIp(ip);
-
-    const existing = await rawSql`
-      SELECT uses_count FROM free_trial_uses
-      WHERE ip_hash = ${trialIpHash}
-    `;
-
-    const currentCount = existing.length > 0 ? (existing[0].uses_count as number) : 0;
-
-    if (currentCount >= FREE_TRIAL_LIMIT) {
-      return Response.json(
-        { error: "Free trial exhausted. Sign in and add funds." },
-        { status: 401 }
-      );
-    }
-
-    isTrial = true;
-  }
-
-  // Parse multipart form data
+  // Parse multipart form data FIRST — validate input before any DB calls
   let formData: FormData;
   try {
     formData = await request.formData();
@@ -100,6 +68,46 @@ export async function POST(request: Request) {
       { error: "Scale must be 2 or 4" },
       { status: 400 }
     );
+  }
+
+  // Try auth — don't throw, check trial if no user
+  const user = await getAuthUser();
+
+  let isTrial = false;
+  let trialNewCount = 0;
+
+  let trialIpHash: string | null = null;
+
+  if (!user) {
+    // Check trial eligibility (SELECT only — don't increment yet).
+    // The count is incremented AFTER inference + GCS upload succeed,
+    // so a failed request doesn't consume a trial slot.
+    const ip = getClientIp(request);
+    trialIpHash = hashIp(ip);
+
+    let existing;
+    try {
+      existing = await rawSql`
+        SELECT uses_count FROM free_trial_uses
+        WHERE ip_hash = ${trialIpHash}
+      `;
+    } catch {
+      return Response.json(
+        { error: "Service temporarily unavailable" },
+        { status: 503 }
+      );
+    }
+
+    const currentCount = existing.length > 0 ? (existing[0].uses_count as number) : 0;
+
+    if (currentCount >= FREE_TRIAL_LIMIT) {
+      return Response.json(
+        { error: "Free trial exhausted. Sign in and add funds." },
+        { status: 401 }
+      );
+    }
+
+    isTrial = true;
   }
 
   // Read image buffer and dimensions

@@ -13,29 +13,37 @@ export async function POST(request: Request) {
     await request.json().catch(() => ({}));
 
   // Find or create user (same pattern as auth/verify)
-  let userRows = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1);
-
-  if (userRows.length === 0) {
+  let userRows;
+  try {
     userRows = await db
-      .insert(users)
-      .values({ email })
-      .returning();
-
-    await db.insert(balances).values({ userId: userRows[0].id });
-  } else {
-    const existingBalance = await db
       .select()
-      .from(balances)
-      .where(eq(balances.userId, userRows[0].id))
+      .from(users)
+      .where(eq(users.email, email))
       .limit(1);
 
-    if (existingBalance.length === 0) {
+    if (userRows.length === 0) {
+      userRows = await db
+        .insert(users)
+        .values({ email })
+        .returning();
+
       await db.insert(balances).values({ userId: userRows[0].id });
+    } else {
+      const existingBalance = await db
+        .select()
+        .from(balances)
+        .where(eq(balances.userId, userRows[0].id))
+        .limit(1);
+
+      if (existingBalance.length === 0) {
+        await db.insert(balances).values({ userId: userRows[0].id });
+      }
     }
+  } catch {
+    return Response.json(
+      { error: "Database connection failed" },
+      { status: 503 }
+    );
   }
 
   const user = userRows[0];

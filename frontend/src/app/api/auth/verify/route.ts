@@ -13,36 +13,46 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/auth/verify?error=missing", request.url));
   }
 
-  const record = await verifyToken(token);
+  let record;
+  try {
+    record = await verifyToken(token);
+  } catch {
+    return NextResponse.redirect(new URL("/auth/verify?error=invalid", request.url));
+  }
 
   if (!record) {
     return NextResponse.redirect(new URL("/auth/verify?error=invalid", request.url));
   }
 
   // Find or create user
-  let userRows = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, record.email))
-    .limit(1);
-
-  if (userRows.length === 0) {
+  let userRows;
+  try {
     userRows = await db
-      .insert(users)
-      .values({ email: record.email })
-      .returning();
-
-    await db.insert(balances).values({ userId: userRows[0].id });
-  } else {
-    const existingBalance = await db
       .select()
-      .from(balances)
-      .where(eq(balances.userId, userRows[0].id))
+      .from(users)
+      .where(eq(users.email, record.email))
       .limit(1);
 
-    if (existingBalance.length === 0) {
+    if (userRows.length === 0) {
+      userRows = await db
+        .insert(users)
+        .values({ email: record.email })
+        .returning();
+
       await db.insert(balances).values({ userId: userRows[0].id });
+    } else {
+      const existingBalance = await db
+        .select()
+        .from(balances)
+        .where(eq(balances.userId, userRows[0].id))
+        .limit(1);
+
+      if (existingBalance.length === 0) {
+        await db.insert(balances).values({ userId: userRows[0].id });
+      }
     }
+  } catch {
+    return NextResponse.redirect(new URL("/auth/verify?error=server", request.url));
   }
 
   const user = userRows[0];
