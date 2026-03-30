@@ -201,7 +201,7 @@ export default function Home() {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setState("idle");
     setFile(null);
     setPreview(null);
@@ -214,7 +214,24 @@ export default function Home() {
     setProgress(0);
     setElapsed(0);
     if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+  }, []);
+
+  // Reset upload state when re-entering the page after navigation.
+  // Handles: React Activity reactivation, bfcache restoration, and fresh mounts.
+  useEffect(() => {
+    handleReset();
+
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) handleReset();
+    };
+    window.addEventListener("pageshow", onPageShow);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (progressRef.current) clearInterval(progressRef.current);
+      window.removeEventListener("pageshow", onPageShow);
+    };
+  }, [handleReset]);
 
   const renderActionButton = () => {
     if (!authChecked || !estimate) return null;
