@@ -62,9 +62,9 @@ test.describe('Auth Journey Screenshots', () => {
     expect(tokenResponse.ok()).toBeTruthy();
     const { verifyUrl } = await tokenResponse.json();
 
-    // Navigate to the verify URL (sets session cookie, redirects to /account)
-    await page.goto(verifyUrl);
-    await page.waitForLoadState('networkidle');
+    // Navigate to the verify URL — capture before redirect completes
+    await page.goto(verifyUrl, { waitUntil: 'commit' });
+    await page.waitForTimeout(500);
     await page.screenshot({ path: path.join(EVIDENCE_DIR, '05-verify-landing.png'), fullPage: true });
   });
 
