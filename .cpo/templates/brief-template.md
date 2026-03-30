@@ -103,29 +103,57 @@
 
 ---
 
-## 7. Acceptance Test (how we PROVE this works)
+## 7. Acceptance Test Script
 
-*A concrete, runnable test that proves the deliverables work. Not checkboxes — an actual command or scenario. The executor must run this and include the output as evidence.*
+*Each brief MUST produce an executable verification script alongside the code. This script is how ANYONE (a verify agent, the director, CI) can independently confirm the work is done.*
+
+**Script path:** `scripts/verify-[brief-id].sh` (committed to the repo with the PR)
+
+**The script must:**
+1. Set up the environment (start app, wait for health check)
+2. Run the actual test (real API calls, real file uploads, real user flows)
+3. Capture evidence (save output to `evidence/[brief-id]/`)
+4. Print PASS or FAIL with specific details
+5. Be runnable by anyone with zero context — no manual steps, no "then open a browser"
 
 ```bash
-# Example acceptance test — replace with your brief's specific test:
-# 1. Start the app
-npm run dev &
-sleep 5
+#!/bin/bash
+# scripts/verify-[brief-id].sh — Acceptance test for [brief title]
+# Run: bash scripts/verify-[brief-id].sh
+# Evidence saved to: evidence/[brief-id]/
+set -euo pipefail
+EVIDENCE_DIR="evidence/[brief-id]"
+mkdir -p "$EVIDENCE_DIR"
 
-# 2. [Test the specific thing this brief builds]
-curl -X POST localhost:3000/api/[endpoint] \
-  -H "Content-Type: application/json" \
-  -d '{"key": "value"}' \
-  | python3 -m json.tool
+# 1. Start app (if not already running)
+# npm run dev &
+# sleep 5
 
+# 2. Test the specific thing this brief builds
+# curl -s -X POST localhost:3000/api/[endpoint] \
+#   -H "Content-Type: application/json" \
+#   -d '{"key": "value"}' \
+#   | tee "$EVIDENCE_DIR/api-response.json" | python3 -m json.tool
+
+# 3. Verify result
 # Expected: [describe what a passing response looks like]
+# if grep -q '"status":"ok"' "$EVIDENCE_DIR/api-response.json"; then
+#   echo "PASS: [what was verified]"
+# else
+#   echo "FAIL: [what went wrong]"
+#   exit 1
+# fi
 
-# 3. Verify side effects
-# [e.g., check database was updated, file was created, email was sent]
+echo "Evidence saved to $EVIDENCE_DIR/"
 ```
 
-*If you cannot write a concrete acceptance test for this brief, the brief is too vague. Refine it before dispatching.*
+**The PR must include:**
+- The verification script at `scripts/verify-[brief-id].sh`
+- The evidence output from running it at `evidence/[brief-id]/`
+- The script's PASS/FAIL output in the PR description
+
+**If you cannot write an executable verification script, the brief is too vague. Refine it before dispatching.**
+**If the script produces FAIL, do NOT merge. Fix the code until the script passes.**
 
 ---
 
