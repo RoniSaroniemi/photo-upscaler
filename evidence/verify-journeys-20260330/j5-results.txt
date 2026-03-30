@@ -1,0 +1,8 @@
+=== J5: Paid Upload ===
+--- Upload with balance ---
+ERROR: No database connection string was provided to `neon()`. Perhaps an environment variable has not been set?
+
+--- Balance after upload ---
+{
+  "error": "Unauthorized"
+}

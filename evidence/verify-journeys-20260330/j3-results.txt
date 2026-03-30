@@ -1,0 +1,14 @@
+=== J3: Sign Up ===
+--- Send magic link ---
+ERROR: No database connection string was provided to `neon()`. Perhaps an environment variable has not been set?
+
+--- Capture email ---
+ERROR: Missing API key. Pass it to the constructor `new Resend(\
+
+--- Dev login ---
+ERROR: No database connection string was provided to `neon()`. Perhaps an environment variable has not been set?
+
+--- Verify session ---
+{
+  "error": "Unauthorized"
+}
