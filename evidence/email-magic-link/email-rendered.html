@@ -1,40 +1,4 @@
-import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-const DEFAULT_FROM = "Honest Image Tools <onboarding@resend.dev>";
-
-interface CapturedEmail {
-  to: string;
-  subject: string;
-  html: string;
-  magicLinkUrl: string;
-  resendResponse: unknown;
-  timestamp: string;
-}
-
-let lastCapturedEmail: CapturedEmail | null = null;
-
-export function getLastCapturedEmail(): CapturedEmail | null {
-  return lastCapturedEmail;
-}
-
-export async function sendMagicLinkEmail(email: string, token: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const magicLink = `${baseUrl}/auth/verify?token=${token}`;
-
-  const fromAddress = process.env.RESEND_FROM_EMAIL || DEFAULT_FROM;
-
-  if (fromAddress.includes("onboarding@resend.dev")) {
-    console.warn(
-      "[auth/email] WARNING: Using Resend sandbox sender (onboarding@resend.dev). " +
-        "Emails will ONLY be delivered to the Resend account owner's verified email. " +
-        "Set RESEND_FROM_EMAIL to a verified domain sender for production use."
-    );
-  }
-
-  const subject = "Sign in to Honest Image Tools";
-  const html = `
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
@@ -56,19 +20,19 @@ export async function sendMagicLinkEmail(email: string, token: string) {
             <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
               <tr>
                 <td style="border-radius:6px;background-color:#4F46E5;">
-                  <a href="${magicLink}" target="_blank" style="display:inline-block;padding:14px 32px;color:#ffffff;font-size:16px;font-weight:600;text-decoration:none;border-radius:6px;">Sign in to Honest Image Tools</a>
+                  <a href="http://localhost:3001/auth/verify?token=12c9d89deb1039dc848df811685ed3b0ce6761d0b2e6ade6cfd32cfaa77545f1" target="_blank" style="display:inline-block;padding:14px 32px;color:#ffffff;font-size:16px;font-weight:600;text-decoration:none;border-radius:6px;">Sign in to Honest Image Tools</a>
                 </td>
               </tr>
             </table>
             <p style="margin:0 0 8px;color:#6b7280;font-size:13px;line-height:1.5;">If the button doesn't work, copy and paste this link into your browser:</p>
-            <p style="margin:0 0 24px;color:#4F46E5;font-size:13px;line-height:1.5;word-break:break-all;">${magicLink}</p>
+            <p style="margin:0 0 24px;color:#4F46E5;font-size:13px;line-height:1.5;word-break:break-all;">http://localhost:3001/auth/verify?token=12c9d89deb1039dc848df811685ed3b0ce6761d0b2e6ade6cfd32cfaa77545f1</p>
             <p style="margin:0;color:#9ca3af;font-size:13px;line-height:1.5;">If you didn't request this email, you can safely ignore it.</p>
           </td>
         </tr>
         <!-- Footer -->
         <tr>
           <td style="padding:24px 40px;background-color:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
-            <p style="margin:0 0 4px;color:#6b7280;font-size:13px;">&copy; ${new Date().getFullYear()} Honest Image Tools</p>
+            <p style="margin:0 0 4px;color:#6b7280;font-size:13px;">&copy; 2026 Honest Image Tools</p>
             <p style="margin:0;color:#9ca3af;font-size:12px;">This link expires in 15 minutes. Do not share it with anyone.</p>
           </td>
         </tr>
@@ -77,30 +41,4 @@ export async function sendMagicLinkEmail(email: string, token: string) {
   </table>
 </body>
 </html>
-    `;
-
-  const response = await resend.emails.send({
-    from: fromAddress,
-    to: email,
-    subject,
-    html,
-  });
-
-  if (response.error) {
-    console.warn(
-      "[auth/email] Resend API error:",
-      JSON.stringify(response.error)
-    );
-  } else {
-    console.log("[auth/email] Resend API response:", JSON.stringify(response));
-  }
-
-  lastCapturedEmail = {
-    to: email,
-    subject,
-    html,
-    magicLinkUrl: magicLink,
-    resendResponse: response,
-    timestamp: new Date().toISOString(),
-  };
-}
+    

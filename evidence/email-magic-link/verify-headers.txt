@@ -1,0 +1,39 @@
+HTTP/1.1 307 Temporary Redirect
+Vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding
+link: </_next/static/media/797e433ab948586e-s.p.0.q-h669a_dqa.woff2>; rel=preload; as="font"; crossorigin=""; type="font/woff2", </_next/static/media/caa3a2e1cccd8315-s.p.16t1db8_9y2o~.woff2>; rel=preload; as="font"; crossorigin=""; type="font/woff2", </_next/static/chunks/%5Broot-of-the-server%5D__02nfq85._.css>; rel=preload; as="style"
+location: /api/auth/verify?token=12c9d89deb1039dc848df811685ed3b0ce6761d0b2e6ade6cfd32cfaa77545f1
+Cache-Control: no-cache, must-revalidate
+X-Powered-By: Next.js
+Content-Type: text/html; charset=utf-8
+Date: Mon, 30 Mar 2026 17:32:54 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+
+HTTP/1.1 307 Temporary Redirect
+vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+location: http://localhost:3001/account
+set-cookie: session=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhOWI1OThhZi0yYjI4LTQwNDEtYjNmZC1kYjY0N2EyNGMxMDEiLCJlbWFpbCI6InJvbmkuc2Fyb25pZW1pQGZveGllLmFpIiwiaWF0IjoxNzc0ODkxOTc1LCJleHAiOjE3Nzc0ODM5NzV9.XZK80MNpG6rvd8cTSLzCKExG6m3GZHwiuLvcXQhk99M; Path=/; Expires=Wed, 29 Apr 2026 17:32:55 GMT; Max-Age=2592000; HttpOnly; SameSite=lax
+Date: Mon, 30 Mar 2026 17:32:55 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+
+HTTP/1.1 307 Temporary Redirect
+location: /auth/login
+Date: Mon, 30 Mar 2026 17:32:55 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+
+HTTP/1.1 200 OK
+Vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding
+link: </_next/static/media/797e433ab948586e-s.p.0.q-h669a_dqa.woff2>; rel=preload; as="font"; crossorigin=""; type="font/woff2", </_next/static/media/caa3a2e1cccd8315-s.p.16t1db8_9y2o~.woff2>; rel=preload; as="font"; crossorigin=""; type="font/woff2"
+Cache-Control: no-cache, must-revalidate
+X-Powered-By: Next.js
+Content-Type: text/html; charset=utf-8
+Date: Mon, 30 Mar 2026 17:32:55 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+
