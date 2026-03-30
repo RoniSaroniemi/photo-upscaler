@@ -406,12 +406,11 @@ export default function Home() {
                 )}
                 <div className="bg-zinc-50 rounded-lg p-4">
                   <p className="text-xs text-zinc-500 mb-2">Upscaled (4×)</p>
-                  <div className="w-full h-48 rounded bg-white border border-zinc-200 flex items-center justify-center">
-                    <span className="text-zinc-400 text-sm">
-                      {result.dimensions.output.width}×
-                      {result.dimensions.output.height}
-                    </span>
-                  </div>
+                  <img
+                    src={result.download_url}
+                    alt="Upscaled"
+                    className="w-full h-48 object-contain rounded bg-white border border-zinc-200"
+                  />
                   <p className="text-sm text-zinc-600 mt-2">
                     {result.dimensions.output.width}×
                     {result.dimensions.output.height}

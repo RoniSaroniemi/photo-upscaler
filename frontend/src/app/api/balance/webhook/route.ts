@@ -1,5 +1,5 @@
 import { stripe } from "@/lib/stripe";
-import { sql } from "@/lib/db";
+import { creditBalance } from "@/lib/stripe/deposit";
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -33,25 +33,7 @@ export async function POST(request: Request) {
       return new Response("Missing user_id or amount", { status: 400 });
     }
 
-    const amountMicrodollars = amountCents * 10000;
-
-    // Idempotency check — skip if this session was already processed
-    const existing =
-      await sql`SELECT id FROM transactions WHERE stripe_checkout_session_id = ${checkoutSessionId} LIMIT 1`;
-
-    if (existing.length === 0) {
-      // Atomic: insert transaction + upsert balance
-      await sql.transaction([
-        sql`INSERT INTO transactions (user_id, type, amount_microdollars, stripe_checkout_session_id, description)
-            VALUES (${userId}, 'deposit', ${amountMicrodollars}, ${checkoutSessionId}, ${"Balance top-up via Stripe"})`,
-        sql`INSERT INTO balances (user_id, amount_microdollars, updated_at)
-            VALUES (${userId}, ${amountMicrodollars}, now())
-            ON CONFLICT (user_id)
-            DO UPDATE SET
-              amount_microdollars = balances.amount_microdollars + ${amountMicrodollars},
-              updated_at = now()`,
-      ]);
-    }
+    await creditBalance(userId, amountCents, checkoutSessionId);
   }
 
   return new Response("OK", { status: 200 });
