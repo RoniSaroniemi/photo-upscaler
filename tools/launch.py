@@ -417,6 +417,15 @@ def launch_pair(args) -> dict:
         log(f"waiting {INIT_WAIT[provider]}s for initialization", json_mode)
         step_wait_init(provider)
 
+        # Determine verification level
+        vlevel = getattr(args, 'verification_level', None)
+        vlevel_str = f"Level {vlevel}" if vlevel else "Level 2+"
+        vlevel_desc = {
+            2: "App starts and health check passes",
+            3: "Core user flow completes end-to-end",
+            4: "Edge cases and error paths tested",
+        }.get(vlevel, "App starts and health check passes (minimum)")
+
         log("injecting brief into supervisor", json_mode)
         prompt = (
             f"Read docs/supervisor-instructions.md for your complete task brief. "
@@ -425,7 +434,9 @@ def launch_pair(args) -> dict:
             f"FIRST: send the task brief to your executor via tmux send-keys. "
             f"THEN: monitor the executor's progress, verify its output, "
             f"and when done: commit, push, create a PR with `gh pr create`, "
-            f"and state 'WORK COMPLETE — PR created, ready for review'."
+            f"and state 'WORK COMPLETE — PR created, ready for review'. "
+            f"VERIFICATION REQUIRED: {vlevel_str} — {vlevel_desc}. "
+            f"Run the smoke-test script before declaring done."
         )
         step_inject_text(sup, prompt, server)
 
@@ -435,11 +446,10 @@ def launch_pair(args) -> dict:
             f"Supervisor 4-min check: "
             f"(1) Did you brief the executor (session '{exc}')? If not, do it NOW. "
             f"(2) Is the executor working or stalled? `tmux capture-pane -t {exc} -p -S -10` "
-            f"(3) If executor is done: did you run the smoke test script? "
-            f"Check: `ls scripts/smoke-test-*.sh` — if it exists, RUN IT before declaring WORK COMPLETE. "
-            f"Check: `ls evidence/` — if no evidence directory, verification is incomplete. "
-            f"(4) Have you verified at Level 2+? (app starts, health check passes). "
-            f"'Build passes' is NOT sufficient for WORK COMPLETE."
+            f"(3) {vlevel_str} VERIFICATION REQUIRED ({vlevel_desc}). "
+            f"Has the smoke-test been run? Check: `ls scripts/smoke-test-*.sh 2>/dev/null` — if it exists, RUN IT. "
+            f"Check: `ls evidence/` — if no evidence, verification is incomplete. "
+            f"(4) 'Build passes' is NOT sufficient for WORK COMPLETE."
         )
         step_setup_cron(sup, provider, "4m", sup_cron_prompt,
                         server, f"sup-{name}", json_mode)
@@ -2147,6 +2157,10 @@ def main():
     parser.add_argument(
         "--supervisor-cron", default=None,
         help="If set, include cron setup instruction (e.g. '4m')",
+    )
+    parser.add_argument(
+        "--verification-level", default=None, type=int, choices=[2, 3, 4],
+        help="Required verification level for this pair (2=runs, 3=flow works, 4=edge cases). Injected into supervisor prompt + cron.",
     )
     parser.add_argument(
         "--worktree-path", default=None,

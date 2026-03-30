@@ -107,7 +107,7 @@
 
 *Each brief MUST produce an executable verification script alongside the code. This script is how ANYONE (a verify agent, the director, CI) can independently confirm the work is done.*
 
-**Script path:** `scripts/verify-[brief-id].sh` (committed to the repo with the PR)
+**Script path:** `scripts/smoke-test-[brief-id].sh` (committed to the repo with the PR)
 
 **The script must:**
 1. Set up the environment (start app, wait for health check)
@@ -118,8 +118,8 @@
 
 ```bash
 #!/bin/bash
-# scripts/verify-[brief-id].sh — Acceptance test for [brief title]
-# Run: bash scripts/verify-[brief-id].sh
+# scripts/smoke-test-[brief-id].sh — Acceptance test for [brief title]
+# Run: bash scripts/smoke-test-[brief-id].sh
 # Evidence saved to: evidence/[brief-id]/
 set -euo pipefail
 EVIDENCE_DIR="evidence/[brief-id]"
@@ -148,7 +148,7 @@ echo "Evidence saved to $EVIDENCE_DIR/"
 ```
 
 **The PR must include:**
-- The verification script at `scripts/verify-[brief-id].sh`
+- The verification script at `scripts/smoke-test-[brief-id].sh`
 - The evidence output from running it at `evidence/[brief-id]/`
 - The script's PASS/FAIL output in the PR description
 
