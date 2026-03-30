@@ -137,7 +137,7 @@ export async function POST(request: Request) {
       }
     } catch {
       return Response.json(
-        { error: "Service temporarily unavailable" },
+        { error: "Unable to check trial eligibility — please try again later" },
         { status: 503 }
       );
     }
@@ -172,7 +172,7 @@ export async function POST(request: Request) {
       }
     } catch {
       return Response.json(
-        { error: "Service temporarily unavailable" },
+        { error: "Unable to check your balance — please try again later" },
         { status: 503 }
       );
     }
@@ -195,7 +195,7 @@ export async function POST(request: Request) {
       jobId = job.id;
     } catch {
       return Response.json(
-        { error: "Service temporarily unavailable" },
+        { error: "Unable to create job — please try again later" },
         { status: 503 }
       );
     }

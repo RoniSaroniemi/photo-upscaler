@@ -1,13 +1,8 @@
 {
-  "scenario": "nonexistent-endpoint",
-  "description": "GET /api/nonexistent",
+  "scenario": "Nonexistent API endpoint",
   "endpoint": "GET /api/nonexistent",
   "http_status": 404,
-  "response": {
-    "error": "Not found",
-    "path": "/api/nonexistent"
-  },
-  "pass": true,
-  "expected": "404 JSON not HTML",
-  "timestamp": "2026-03-30T18:46:28Z"
+  "response_body": {"error":"Not found","path":"/api/nonexistent"},
+  "pass_fail": "PASS",
+  "timestamp": "2026-03-30T19:44:28Z"
 }
