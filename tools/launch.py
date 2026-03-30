@@ -373,7 +373,8 @@ def launch_pair(args) -> dict:
             f"4. Launch {provider} in both sessions: {PROVIDER_COMMANDS[provider]}",
             f"5. Wait {INIT_WAIT[provider]}s for initialization",
             f"6. Inject brief into supervisor {sup}",
-            f"7. Verify supervisor is processing",
+            f"7. Set up supervisor 4m cron (delegation + verification reminders)",
+            f"8. Verify supervisor is processing",
         ]
         if args.observe:
             obs_run_id = _generate_observer_run_id(args.run_id)
@@ -427,6 +428,21 @@ def launch_pair(args) -> dict:
             f"and state 'WORK COMPLETE — PR created, ready for review'."
         )
         step_inject_text(sup, prompt, server)
+
+        # Set up supervisor cron — recurring check every 4 minutes
+        log("setting up supervisor 4m cron", json_mode)
+        sup_cron_prompt = (
+            f"Supervisor 4-min check: "
+            f"(1) Did you brief the executor (session '{exc}')? If not, do it NOW. "
+            f"(2) Is the executor working or stalled? `tmux capture-pane -t {exc} -p -S -10` "
+            f"(3) If executor is done: did you run the smoke test script? "
+            f"Check: `ls scripts/smoke-test-*.sh` — if it exists, RUN IT before declaring WORK COMPLETE. "
+            f"Check: `ls evidence/` — if no evidence directory, verification is incomplete. "
+            f"(4) Have you verified at Level 2+? (app starts, health check passes). "
+            f"'Build passes' is NOT sufficient for WORK COMPLETE."
+        )
+        step_setup_cron(sup, provider, "4m", sup_cron_prompt,
+                        server, f"sup-{name}", json_mode)
 
         log("verifying supervisor is active", json_mode)
         active = step_verify(sup, server)
