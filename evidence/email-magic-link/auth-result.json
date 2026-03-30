@@ -1,0 +1,9 @@
+{
+  "authentication": "success",
+  "status_code": 307,
+  "redirect_location": "http://localhost:3001/account",
+  "set_cookie": "session=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhOWI1OThhZi0yYjI4LTQwNDEtYjNmZC1kYjY0N2EyNGMxMDEiLCJlbWFpbCI6InJvbmkuc2Fyb25pZW1pQGZveGllLmFpIiwiaWF0IjoxNzc0ODk1NzY5LCJleHAiOjE3Nzc0ODc3Njl9.YzmklY45Rf11QXsTDNva3tL3h_VY7NciddZi-7358Pw; Path=/; Expires=Wed, 29 Apr 2026 18:36:09 GMT; Max-Age=2592000; HttpOnly; SameSite=lax",
+  "token_used": "2fe1f3500ad121f4d2c466fd2e05004858ac32215404bbb9afa9bef139489981",
+  "note": "Token is single-use. Subsequent verification with same token correctly returns error=invalid.",
+  "second_call_confirms_token_consumed": true
+}

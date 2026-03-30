@@ -1,0 +1,10 @@
+PASS: health.json exists and contains 'ok'
+PASS: send-response.json exists and contains 'Magic link sent'
+PASS: delivery-confirmation.json exists and has delivery data
+PASS: email-content.json exists and contains HTML
+PASS: email-rendered.png exists and is >0 bytes
+PASS: auth-result.json exists and shows authentication success
+PASS: smoke-output.txt exists (self-created)
+
+=== 7/7 checks passed ===
+
