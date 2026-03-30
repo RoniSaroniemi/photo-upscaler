@@ -1,0 +1,16 @@
+=== J4: Add Funds ===
+--- Reset account ---
+ERROR: No database connection string was provided to `neon()`. Perhaps an environment variable has not been set?
+
+--- Create checkout ---
+{
+  "error": "Unauthorized"
+}
+
+--- Session check ---
+ERROR: <!DOCTYPE html><html lang="en" class="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable h-full antialiased"><head><meta charSet="utf-8"/><meta name="viewport" conten
+
+--- Balance check ---
+{
+  "error": "Unauthorized"
+}
