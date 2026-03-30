@@ -1,0 +1,12 @@
+{
+  "scenario": "empty-upload",
+  "description": "POST with no file to upload",
+  "endpoint": "POST /api/upscale",
+  "http_status": 400,
+  "response": {
+    "error": "Missing 'file' field"
+  },
+  "pass": true,
+  "expected": "Clear error message about missing file",
+  "timestamp": "2026-03-30T18:46:19Z"
+}
