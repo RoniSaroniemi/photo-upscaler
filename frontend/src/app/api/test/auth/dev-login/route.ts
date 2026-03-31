@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { users, balances } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
 import { signJwt } from "@/lib/auth/jwt";
+import { getOrCreateTestUser } from "@/lib/auth/test-users";
 
 export async function POST(request: Request) {
   if (process.env.TEST_MODE !== "true") {
@@ -12,33 +10,7 @@ export async function POST(request: Request) {
   const { email = "dev-test@honest-image-tools.local" } =
     await request.json().catch(() => ({}));
 
-  // Find or create user (same pattern as auth/verify)
-  let userRows = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1);
-
-  if (userRows.length === 0) {
-    userRows = await db
-      .insert(users)
-      .values({ email })
-      .returning();
-
-    await db.insert(balances).values({ userId: userRows[0].id });
-  } else {
-    const existingBalance = await db
-      .select()
-      .from(balances)
-      .where(eq(balances.userId, userRows[0].id))
-      .limit(1);
-
-    if (existingBalance.length === 0) {
-      await db.insert(balances).values({ userId: userRows[0].id });
-    }
-  }
-
-  const user = userRows[0];
+  const user = getOrCreateTestUser(email);
   const jwt = await signJwt({ sub: user.id, email: user.email });
 
   const response = NextResponse.json({ userId: user.id, email: user.email });

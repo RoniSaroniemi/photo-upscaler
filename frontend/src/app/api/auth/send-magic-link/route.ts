@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { magicLinkTokens } from "@/lib/db/schema";
-import { eq, and, gt } from "drizzle-orm";
-import { generateToken, storeToken } from "@/lib/auth/tokens";
+import { generateToken, storeToken, countRecentTokens } from "@/lib/auth/tokens";
 import { sendMagicLinkEmail } from "@/lib/auth/email";
 
 export async function POST(request: Request) {
@@ -13,18 +10,8 @@ export async function POST(request: Request) {
   }
 
   // Rate limit: 3 magic links per email per hour
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-  const recentTokens = await db
-    .select()
-    .from(magicLinkTokens)
-    .where(
-      and(
-        eq(magicLinkTokens.email, email),
-        gt(magicLinkTokens.createdAt, oneHourAgo)
-      )
-    );
-
-  if (recentTokens.length >= 3) {
+  const recentCount = await countRecentTokens(email);
+  if (recentCount >= 3) {
     return NextResponse.json(
       { error: "Too many requests. Try again later." },
       { status: 429 }
