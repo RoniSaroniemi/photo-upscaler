@@ -2,7 +2,21 @@
   "success": true,
   "status_code": 307,
   "redirect_location": "http://localhost:3001/account",
-  "session_cookie": "session=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhOWI1OThhZi0yYjI4LTQwNDEtYjNmZC1kYjY0N2EyNGMxMDEiLCJlbWFpbCI6InJvbmkuc2Fyb25pZW1pQGZveGllLmFpIiwiaWF0IjoxNzc0ODk5Njg1LCJleHAiOjE3Nzc0OTE2ODV9.U6EdbjoJH2gGOSS_5MaYFWqJ2eEv7B27_ws2cg6jkRM",
-  "token_used": "872b0ed74743d0d03be7928e62ce1de50f9ff82c02993bc21f0dabcf01867b79",
-  "response_body": ""
+  "session_cookie": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhOWI1OThhZi0yYjI4LTQwNDEtYjNmZC1kYjY0N2EyNGMxMDEiLCJlbWFpbCI6InJvbmkuc2Fyb25pZW1pQGZveGllLmFpIiwiaWF0IjoxNzc0OTQ3MzY1LCJleHAiOjE3Nzc1MzkzNjV9.dhyrkoFdDnFaMoH6X-bvD3T1SYOriiF3-m-VdUTrnsw",
+  "token_used": "0ba1b947862fe62c820fe80dfccac64b0e512c61ad602e96733a2531dae88fae",
+  "response_body": "",
+  "timestamp": "2026-03-31T08:56:05Z",
+  "reuse_test": {
+    "rejected": true,
+    "status_code": 400,
+    "error": "Invalid or expired token",
+    "description": "Second use of same token — should be rejected"
+  },
+  "invalid_token_test": {
+    "rejected": true,
+    "status_code": 400,
+    "error": "Invalid or expired token",
+    "token_used": "totally-invalid-garbage-token-1234",
+    "description": "Garbage token — should return 400"
+  }
 }
