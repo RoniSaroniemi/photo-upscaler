@@ -1,28 +1,28 @@
 {
-  "email_id": "17de582b-f293-432f-88f7-1546feb1f98f",
+  "email_id": "78902258-108b-44c5-ae0d-a8f1bb2aa4ef",
   "to": "roni.saroniemi@foxie.ai",
   "subject": "Sign in to Honest Image Tools",
   "resend_status": "sent",
-  "timestamp": "2026-03-31T08:54:20.621Z",
+  "timestamp": "2026-03-31T08:56:02.404Z",
   "resend_response": {
     "data": {
-      "id": "17de582b-f293-432f-88f7-1546feb1f98f"
+      "id": "78902258-108b-44c5-ae0d-a8f1bb2aa4ef"
     },
     "error": null,
     "headers": {
       "cf-cache-status": "DYNAMIC",
-      "cf-ray": "9e4e20f97cb8e5dc-HEL",
+      "cf-ray": "9e4e2375dfded088-HEL",
       "connection": "keep-alive",
       "content-length": "45",
       "content-type": "application/json",
-      "date": "Tue, 31 Mar 2026 08:54:20 GMT",
+      "date": "Tue, 31 Mar 2026 08:56:02 GMT",
       "ratelimit-limit": "5",
       "ratelimit-policy": "5;w=1",
       "ratelimit-remaining": "4",
       "ratelimit-reset": "1",
       "server": "cloudflare",
-      "x-resend-daily-quota": "0",
-      "x-resend-monthly-quota": "7"
+      "x-resend-daily-quota": "1",
+      "x-resend-monthly-quota": "8"
     }
   }
 }

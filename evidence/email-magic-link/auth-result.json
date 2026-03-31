@@ -2,10 +2,10 @@
   "success": true,
   "status_code": 307,
   "redirect_location": "http://localhost:3001/account",
-  "session_cookie": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhOWI1OThhZi0yYjI4LTQwNDEtYjNmZC1kYjY0N2EyNGMxMDEiLCJlbWFpbCI6InJvbmkuc2Fyb25pZW1pQGZveGllLmFpIiwiaWF0IjoxNzc0OTQ3MjYzLCJleHAiOjE3Nzc1MzkyNjN9.H0vUBVy6Lolt9qowyn7r3XCJs_FmFo4MVhn1meo_3rc",
-  "token_used": "9cbb1ac6d7dd8cb66e1f2de54a2c9e5a0a90582520b6e99a55e279f2a93845af",
+  "session_cookie": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhOWI1OThhZi0yYjI4LTQwNDEtYjNmZC1kYjY0N2EyNGMxMDEiLCJlbWFpbCI6InJvbmkuc2Fyb25pZW1pQGZveGllLmFpIiwiaWF0IjoxNzc0OTQ3MzY1LCJleHAiOjE3Nzc1MzkzNjV9.dhyrkoFdDnFaMoH6X-bvD3T1SYOriiF3-m-VdUTrnsw",
+  "token_used": "0ba1b947862fe62c820fe80dfccac64b0e512c61ad602e96733a2531dae88fae",
   "response_body": "",
-  "timestamp": "2026-03-31T08:54:23Z",
+  "timestamp": "2026-03-31T08:56:05Z",
   "reuse_test": {
     "rejected": true,
     "status_code": 400,

@@ -1,8 +1,8 @@
 
 === Email Magic Link E2E Smoke Test ===
 Base URL: http://localhost:3001
-Evidence: /private/tmp/issue37a-email-magic-link/evidence/email-magic-link
-Started:  2026-03-31T08:54:18Z
+Evidence: /tmp/issue37a-email-magic-link/evidence/email-magic-link
+Started:  2026-03-31T08:56:00Z
 
 App already running on http://localhost:3001
 
@@ -18,15 +18,15 @@ PASS: Magic link sent to roni.saroniemi@foxie.ai
 PASS: Email content captured (has HTML + magicLinkUrl)
 
 --- Step 4: Delivery Confirmation ---
-  Email ID: 17de582b-f293-432f-88f7-1546feb1f98f
-  Timestamp: 2026-03-31T08:54:20.621Z
-PASS: Delivery confirmation extracted (email_id=17de582b-f293-432f-88f7-1546feb1f98f)
+  Email ID: 78902258-108b-44c5-ae0d-a8f1bb2aa4ef
+  Timestamp: 2026-03-31T08:56:02.404Z
+PASS: Delivery confirmation extracted (email_id=78902258-108b-44c5-ae0d-a8f1bb2aa4ef)
 
 --- Step 5: Email Screenshot ---
-PASS: Email screenshot rendered (45699 bytes)
+PASS: Email screenshot rendered (45460 bytes)
 
 --- Step 6: Token Verification (Auth Flow) ---
-  Token: 9cbb1ac6d7dd8cb6...
+  Token: 0ba1b947862fe62c...
   Status: 307
   Redirect: http://localhost:3001/account
   Session cookie: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ...
@@ -51,7 +51,7 @@ Evidence files:
   ✓ send-response.json (36 bytes)
   ✓ email-content.json (3907 bytes)
   ✓ delivery-confirmation.json (809 bytes)
-  ✓ email-rendered.png (45699 bytes)
+  ✓ email-rendered.png (45460 bytes)
   ✓ auth-result.json (897 bytes)
-  ✓ smoke-output.txt (402 bytes)
+  ✓ smoke-output.txt (1809 bytes)
 
