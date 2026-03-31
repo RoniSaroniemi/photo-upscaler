@@ -60,7 +60,7 @@ fi
 # Scenario 2: Empty upload — expect 400 with "Missing"
 STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE_URL/api/upscale" -F "dummy=nothing")
 BODY=$(curl -s -X POST "$BASE_URL/api/upscale" -F "dummy=nothing")
-if [[ "$STATUS" == "400" ]] && echo "$BODY" | grep -q "Missing"; then
+if [[ "$STATUS" == "400" ]] && echo "$BODY" | grep -q "No file provided"; then
   pass "2. Empty upload" "$STATUS"
 else
   fail "2. Empty upload" "$STATUS" "$BODY"

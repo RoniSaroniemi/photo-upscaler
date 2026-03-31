@@ -1,8 +1,8 @@
 {
-  "scenario": "Invalid magic link token",
+  "scenario": "3. Invalid magic link token",
   "endpoint": "GET /api/auth/verify?token=fake_invalid_token",
   "http_status": 400,
-  "response_body": {"error":"Invalid or expired token"},
+  "response_body": {"error":"This sign-in link is invalid or has expired \u2014 please request a new one"},
   "pass_fail": "PASS",
-  "timestamp": "2026-03-30T19:44:25Z"
+  "timestamp": "2026-03-31T00:00:00Z"
 }

@@ -1,8 +1,8 @@
 {
-  "scenario": "Empty upload (no file field)",
+  "scenario": "2. Empty upload (no file field)",
   "endpoint": "POST /api/upscale",
   "http_status": 400,
-  "response_body": {"error":"Missing 'file' field"},
+  "response_body": {"error":"No file provided \u2014 please select an image to upload"},
   "pass_fail": "PASS",
-  "timestamp": "2026-03-30T19:44:22Z"
+  "timestamp": "2026-03-31T00:00:00Z"
 }
