@@ -4,6 +4,7 @@ import { users, balances } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyToken } from "@/lib/auth/tokens";
 import { signJwt } from "@/lib/auth/jwt";
+import { getOrCreateTestUser } from "@/lib/auth/test-users";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -35,32 +36,39 @@ export async function GET(request: Request) {
 
   // Find or create user
   try {
-    let userRows = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, record.email))
-      .limit(1);
+    let user: { id: string; email: string };
 
-    if (userRows.length === 0) {
-      userRows = await db
-        .insert(users)
-        .values({ email: record.email })
-        .returning();
-
-      await db.insert(balances).values({ userId: userRows[0].id });
+    if (process.env.TEST_MODE === "true") {
+      user = getOrCreateTestUser(record.email);
     } else {
-      const existingBalance = await db
+      let userRows = await db
         .select()
-        .from(balances)
-        .where(eq(balances.userId, userRows[0].id))
+        .from(users)
+        .where(eq(users.email, record.email))
         .limit(1);
 
-      if (existingBalance.length === 0) {
+      if (userRows.length === 0) {
+        userRows = await db
+          .insert(users)
+          .values({ email: record.email })
+          .returning();
+
         await db.insert(balances).values({ userId: userRows[0].id });
+      } else {
+        const existingBalance = await db
+          .select()
+          .from(balances)
+          .where(eq(balances.userId, userRows[0].id))
+          .limit(1);
+
+        if (existingBalance.length === 0) {
+          await db.insert(balances).values({ userId: userRows[0].id });
+        }
       }
+
+      user = userRows[0];
     }
 
-    const user = userRows[0];
     const jwt = await signJwt({ sub: user.id, email: user.email });
 
     const response = NextResponse.redirect(new URL("/account", request.url));

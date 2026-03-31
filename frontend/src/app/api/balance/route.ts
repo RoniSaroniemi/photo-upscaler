@@ -12,6 +12,15 @@ export async function GET() {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (process.env.TEST_MODE === "true") {
+    return Response.json({
+      balance_microdollars: "0",
+      formatted: "$0.00",
+      currency: "USD",
+      email: user.email,
+    });
+  }
+
   const result = await db
     .select()
     .from(balances)
@@ -24,5 +33,6 @@ export async function GET() {
     balance_microdollars: balanceMicrodollars.toString(),
     formatted: formatMicrodollars(balanceMicrodollars),
     currency: "USD",
+    email: user.email,
   });
 }
