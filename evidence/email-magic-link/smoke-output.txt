@@ -1,10 +1,57 @@
-PASS: health.json exists and contains 'ok'
-PASS: send-response.json exists and contains 'Magic link sent'
-PASS: delivery-confirmation.json exists and has delivery data
-PASS: email-content.json exists and contains HTML
-PASS: email-rendered.png exists and is >0 bytes
-PASS: auth-result.json exists and shows authentication success
-PASS: smoke-output.txt exists (self-created)
 
-=== 7/7 checks passed ===
+=== Email Magic Link E2E Smoke Test ===
+Base URL: http://localhost:3001
+Evidence: /private/tmp/issue37a-email-magic-link/evidence/email-magic-link
+Started:  2026-03-31T08:54:18Z
+
+App already running on http://localhost:3001
+
+--- Step 1: Health Check ---
+PASS: Health check OK (db=connected)
+
+--- Step 2: Send Magic Link ---
+PASS: Magic link sent to roni.saroniemi@foxie.ai
+
+--- Step 3: Capture Email Content ---
+  To: roni.saroniemi@foxie.ai
+  Subject: Sign in to Honest Image Tools
+PASS: Email content captured (has HTML + magicLinkUrl)
+
+--- Step 4: Delivery Confirmation ---
+  Email ID: 17de582b-f293-432f-88f7-1546feb1f98f
+  Timestamp: 2026-03-31T08:54:20.621Z
+PASS: Delivery confirmation extracted (email_id=17de582b-f293-432f-88f7-1546feb1f98f)
+
+--- Step 5: Email Screenshot ---
+PASS: Email screenshot rendered (45699 bytes)
+
+--- Step 6: Token Verification (Auth Flow) ---
+  Token: 9cbb1ac6d7dd8cb6...
+  Status: 307
+  Redirect: http://localhost:3001/account
+  Session cookie: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ...
+
+--- Step 7: Single-Use Token Rejection ---
+  Reuse status: 400
+  Reuse error: Invalid or expired token
+PASS: Single-use token rejection (status=400)
+
+--- Step 8: Invalid Token Rejection ---
+  Invalid token status: 400
+  Invalid token error: Invalid or expired token
+PASS: Invalid token rejection (status=400)
+PASS: Token verification — 307 redirect to /account with session cookie
+
+===========================================
+  RESULTS: 8 passed, 0 failed (of 8 tests)
+===========================================
+
+Evidence files:
+  ✓ health.json (64 bytes)
+  ✓ send-response.json (36 bytes)
+  ✓ email-content.json (3907 bytes)
+  ✓ delivery-confirmation.json (809 bytes)
+  ✓ email-rendered.png (45699 bytes)
+  ✓ auth-result.json (897 bytes)
+  ✓ smoke-output.txt (402 bytes)
 
