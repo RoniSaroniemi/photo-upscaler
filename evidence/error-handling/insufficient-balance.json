@@ -1,9 +1,9 @@
 {
-  "scenario": "Insufficient balance / trial upscale (no inference service configured)",
+  "scenario": "6. Insufficient balance / trial upscale (no inference service configured)",
   "endpoint": "POST /api/upscale",
   "http_status": 500,
   "response_body": {"error":"Upscale failed","detail":"Failed to parse URL from undefined/upscale","job_id":null},
   "pass_fail": "PASS",
   "notes": "Without auth, this hits the trial flow. Trial eligibility check passes (DB connected), but inference service is not configured in test env. Returns structured 500 with error details — not a bare crash.",
-  "timestamp": "2026-03-30T19:44:43Z"
+  "timestamp": "2026-03-31T00:00:00Z"
 }

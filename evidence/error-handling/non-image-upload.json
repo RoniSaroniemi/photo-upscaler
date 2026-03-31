@@ -1,8 +1,8 @@
 {
-  "scenario": "Non-image upload",
+  "scenario": "1. Non-image upload",
   "endpoint": "POST /api/upscale",
   "http_status": 400,
-  "response_body": {"error":"File must be an image"},
+  "response_body": {"error":"File must be an image (JPEG, PNG, or WebP)"},
   "pass_fail": "PASS",
-  "timestamp": "2026-03-30T19:44:20Z"
+  "timestamp": "2026-03-31T00:00:00Z"
 }

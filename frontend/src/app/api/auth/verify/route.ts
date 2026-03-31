@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 
   if (!record) {
     return NextResponse.json(
-      { error: "Invalid or expired token" },
+      { error: "This sign-in link is invalid or has expired — please request a new one" },
       { status: 400 }
     );
   }

@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   const file = formData.get("file");
   if (!file || !(file instanceof Blob)) {
     return Response.json(
-      { error: "Missing 'file' field" },
+      { error: "No file provided — please select an image to upload" },
       { status: 400 }
     );
   }
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   // Validate MIME type
   if (!ALLOWED_MIME_PREFIXES.some((p) => file.type.startsWith(p))) {
     return Response.json(
-      { error: "File must be an image" },
+      { error: "File must be an image (JPEG, PNG, or WebP)" },
       { status: 400 }
     );
   }
